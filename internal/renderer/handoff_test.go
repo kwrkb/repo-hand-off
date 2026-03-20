@@ -76,6 +76,7 @@ func TestRenderHandoff(t *testing.T) {
 		"## Lessons",
 		"Not found",
 		"## README",
+		"````markdown",
 		"Usage details",
 		"## CLAUDE",
 		"Assistant guidance",

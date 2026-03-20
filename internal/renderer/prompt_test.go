@@ -84,20 +84,3 @@ func TestRenderPromptInvalidFormat(t *testing.T) {
 	}
 }
 
-func TestIsValidFormat(t *testing.T) {
-	tests := []struct {
-		format string
-		valid  bool
-	}{
-		{"markdown", true},
-		{"xml", true},
-		{"json", false},
-		{"", false},
-		{"MARKDOWN", false},
-	}
-	for _, tt := range tests {
-		if got := IsValidFormat(tt.format); got != tt.valid {
-			t.Errorf("IsValidFormat(%q) = %v, want %v", tt.format, got, tt.valid)
-		}
-	}
-}

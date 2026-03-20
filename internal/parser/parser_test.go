@@ -130,16 +130,43 @@ Important notes here.
 }
 
 func TestParseHandoffReadmeAndClaude(t *testing.T) {
-	content := `# HANDOFF.md
+	content := "# HANDOFF.md\n\n## README\n````markdown\n# README\nUsage details.\n````\n\n## CLAUDE\n````markdown\n# CLAUDE\nAssistant guidance.\n````\n"
 
-## README
-# README
-Usage details.
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
 
-## CLAUDE
-# CLAUDE
-Assistant guidance.
-`
+	if parsed.Readme != "# README\nUsage details." {
+		t.Errorf("Readme = %q", parsed.Readme)
+	}
+	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Claude = %q", parsed.Claude)
+	}
+}
+
+func TestParseHandoffReadmeWithConflictingHeaders(t *testing.T) {
+	content := "# HANDOFF.md\n\n## README\n````markdown\n# README\n## Plan\nThis is not a plan section.\n## Vision\nThis is not a vision section.\n````\n\n## Plan\n# Plan\nActual plan.\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if !strings.Contains(parsed.Readme, "## Plan") {
+		t.Error("Readme should contain ## Plan as content, not split it")
+	}
+	if !strings.Contains(parsed.Readme, "## Vision") {
+		t.Error("Readme should contain ## Vision as content")
+	}
+	if parsed.Plan != "# Plan\nActual plan." {
+		t.Errorf("Plan = %q, should be actual plan content", parsed.Plan)
+	}
+}
+
+func TestParseHandoffReadmeUnfenced(t *testing.T) {
+	// Backward compatibility: unfenced README/CLAUDE content should still work
+	content := "# HANDOFF.md\n\n## README\n# README\nUsage details.\n\n## CLAUDE\n# CLAUDE\nAssistant guidance.\n"
 
 	parsed, err := ParseHandoffMarkdown(content)
 	if err != nil {

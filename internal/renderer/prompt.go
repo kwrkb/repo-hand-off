@@ -15,16 +15,6 @@ const (
 // ValidFormats contains all supported output format names.
 var ValidFormats = []string{FormatMarkdown, FormatXML}
 
-// IsValidFormat returns true if the given format string is supported.
-func IsValidFormat(format string) bool {
-	for _, f := range ValidFormats {
-		if f == format {
-			return true
-		}
-	}
-	return false
-}
-
 // RenderPrompt generates an AI-ready prompt from a snapshot.
 func RenderPrompt(s *collector.Snapshot, format string) (string, error) {
 	switch format {
