@@ -195,31 +195,31 @@ README.md / CLAUDE.md を第一級フィールドから Extra に移行し、AGE
 
 ---
 
-## Phase 9: リポジトリ公開準備
+## Phase 9: リポジトリ公開準備（完了）
 
 公開前に必要な品質・配布・運用基盤を整える。
 
-### Step 1: 必須（公開ブロッカー）
+### Step 1: 必須（公開ブロッカー）（完了）
 
-- [ ] LICENSE ファイル作成（MIT — README.md に記載済みだがファイルが未作成）
-- [ ] `handoff version` コマンド追加（`-v` / `--version` フラグ、ビルド時に `ldflags` で埋め込み）
-- [ ] GitHub Actions CI（`.github/workflows/ci.yml`）
+- [x] LICENSE ファイル作成（MIT）
+- [x] `handoff version` コマンド追加（`--version` フラグ、ビルド時に `ldflags` で埋め込み）
+  > `-v` は `--verbose` で使用済みのため `--version` のみ。cobra の `Version` フィールドを利用
+- [x] GitHub Actions CI（`.github/workflows/ci.yml`）
   - `go test ./...`
   - `go vet ./...`
-  - `golangci-lint run`（オプション）
-  - Go バージョンマトリクス（1.22+）
+  - Go バージョンマトリクス（1.22〜1.26）
 
-### Step 2: リリース自動化
+### Step 2: リリース自動化（完了）
 
-- [ ] `.goreleaser.yml` 作成（クロスプラットフォームバイナリ + チェックサム）
-- [ ] GitHub Actions リリースワークフロー（`.github/workflows/release.yml` — タグ push 時に goreleaser 実行）
-- [ ] README にインストール手順追記（`go install` は既存、goreleaser バイナリ DL を追加）
+- [x] `.goreleaser.yml` 作成（クロスプラットフォームバイナリ + チェックサム）
+- [x] GitHub Actions リリースワークフロー（`.github/workflows/release.yml` — タグ push 時に goreleaser 実行）
+- [x] README にインストール手順追記（Releases ダウンロードリンク追加）
 
-### Step 3: 仕上げ
+### Step 3: 仕上げ（完了）
 
-- [ ] README にバッジ追加（CI status, Go version, License, Go Report Card）
-- [ ] AGENTS.md 内容を正しく更新（現在 Codex 向けテンプレートのコピーが残っている）
-- [ ] PLAN.md の公開向け整理（内部進捗ログの簡素化は任意）
+- [x] README にバッジ追加（CI status, Go version, License, Go Report Card）
+- [x] AGENTS.md 内容を正しく更新（英語化、現在のアーキテクチャ・コマンド一覧を反映）
+- [x] PLAN.md の公開向け整理（内部進捗ログの簡素化は任意）
 
 ---
 
