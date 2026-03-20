@@ -155,6 +155,46 @@ repo-hand-off/
 
 ---
 
+## Phase 7: テスト強化 & エラーハンドリング（完了）
+
+PR #4 でマージ。
+
+- [x] `RenderHandoff` / `RenderPrompt` の戻り値を `(string, error)` に変更
+- [x] `config.Load` の YAML パースエラーにコンテキスト付与
+- [x] README.md / CLAUDE.md を第一級セクションとして追加（collector / parser / renderer / differ / import）
+- [x] README/CLAUDE コンテンツをコードフェンス(````)で囲み、内部 `##` 見出しのパーサー衝突を防止
+- [x] 各パッケージのエッジケーステスト追加
+- [x] 未使用の `IsValidFormat` 関数を削除
+
+---
+
+## Phase 8: README/CLAUDE を Extra に統合 & AI設定ファイル自動検出（完了）
+
+README.md / CLAUDE.md を第一級フィールドから Extra に移行し、AGENTS.md / GEMINI.md 等のAI設定ファイルも自動検出する。
+
+### 動機
+
+- AI設定ファイル（CLAUDE.md, AGENTS.md, GEMINI.md）が増えるたびに全レイヤーを修正するのは非効率
+- README.md / CLAUDE.md は handoff 固有の概念ではなく「プロジェクトに存在すれば取り込みたいファイル」
+- Extra の仕組みがすでにあるため、自動検出リストを拡張するだけで対応可能
+
+### タスク
+
+- [x] `collector/files.go`: `ProjectFiles` から `Readme` / `Claude` フィールドを削除
+- [x] `collector/files.go`: `autoExtraFiles` リスト新設（README.md, CLAUDE.md, AGENTS.md, GEMINI.md）
+- [x] `collector/files.go`: `CollectFiles` で autoExtraFiles を自動検出し Extra に統合
+- [x] `parser/parser.go`: README / CLAUDE セクションを Extra として扱うよう変更
+- [x] `renderer/handoff.go`: Readme / Claude 専用レンダリングを削除、Extra で統一
+- [x] `renderer/prompt.go`: XML の `<readme>` / `<claude>` を `<extra>` に統一
+- [x] `differ/differ.go`: Readme / Claude 専用比較を削除、Extra で統一
+- [x] `cmd/import.go`: Readme / Claude 専用インポートを Extra で統一、`MkdirAll` 追加
+- [x] `renderer/handoff.go`: `writeFencedContentOrNotFound` 削除（Extra は直接出力）
+- [x] テスト: 全パッケージのテスト更新（collector, parser, renderer, differ）
+- [x] 後方互換: 旧形式（`## README` / `## CLAUDE`）の HANDOFF.md をパースできるようにする
+  > `handoffSections` に "README" / "CLAUDE" を残し、パース時に `Extra["README.md"]` / `Extra["CLAUDE.md"]` へ変換
+
+---
+
 ## MVP後（将来フェーズ）
 
 - ~~`.handoff.yaml` 設定ファイル~~ → Phase 6 で実装済み

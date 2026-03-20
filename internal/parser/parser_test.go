@@ -137,11 +137,11 @@ func TestParseHandoffReadmeAndClaude(t *testing.T) {
 		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
 	}
 
-	if parsed.Readme != "# README\nUsage details." {
-		t.Errorf("Readme = %q", parsed.Readme)
+	if parsed.Extra["README.md"] != "# README\nUsage details." {
+		t.Errorf("Extra[README.md] = %q", parsed.Extra["README.md"])
 	}
-	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
-		t.Errorf("Claude = %q", parsed.Claude)
+	if parsed.Extra["CLAUDE.md"] != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Extra[CLAUDE.md] = %q", parsed.Extra["CLAUDE.md"])
 	}
 }
 
@@ -153,11 +153,12 @@ func TestParseHandoffReadmeWithConflictingHeaders(t *testing.T) {
 		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
 	}
 
-	if !strings.Contains(parsed.Readme, "## Plan") {
-		t.Error("Readme should contain ## Plan as content, not split it")
+	readme := parsed.Extra["README.md"]
+	if !strings.Contains(readme, "## Plan") {
+		t.Error("README.md should contain ## Plan as content, not split it")
 	}
-	if !strings.Contains(parsed.Readme, "## Vision") {
-		t.Error("Readme should contain ## Vision as content")
+	if !strings.Contains(readme, "## Vision") {
+		t.Error("README.md should contain ## Vision as content")
 	}
 	if parsed.Plan != "# Plan\nActual plan." {
 		t.Errorf("Plan = %q, should be actual plan content", parsed.Plan)
@@ -173,11 +174,11 @@ func TestParseHandoffReadmeUnfenced(t *testing.T) {
 		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
 	}
 
-	if parsed.Readme != "# README\nUsage details." {
-		t.Errorf("Readme = %q", parsed.Readme)
+	if parsed.Extra["README.md"] != "# README\nUsage details." {
+		t.Errorf("Extra[README.md] = %q", parsed.Extra["README.md"])
 	}
-	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
-		t.Errorf("Claude = %q", parsed.Claude)
+	if parsed.Extra["CLAUDE.md"] != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Extra[CLAUDE.md] = %q", parsed.Extra["CLAUDE.md"])
 	}
 }
 
@@ -186,7 +187,7 @@ func TestParseHandoffEmptyContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
 	}
-	if parsed.Vision != "" || parsed.Plan != "" || parsed.Lessons != "" || parsed.Readme != "" || parsed.Claude != "" {
+	if parsed.Vision != "" || parsed.Plan != "" || parsed.Lessons != "" {
 		t.Error("empty content should produce empty parsed result")
 	}
 	if len(parsed.Extra) != 0 {

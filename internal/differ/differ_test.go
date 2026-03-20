@@ -12,25 +12,29 @@ func TestCompareAllStatuses(t *testing.T) {
 		Vision:  "# Vision\nSame content.",
 		Plan:    "# Plan\nOld plan.",
 		Lessons: "",
-		Readme:  "# README\nSame usage.",
-		Claude:  "# CLAUDE\nOld guidance.",
+		Extra: map[string]string{
+			"README.md": "# README\nSame usage.",
+			"CLAUDE.md": "# CLAUDE\nOld guidance.",
+		},
 	}
 	current := &collector.ProjectFiles{
 		Vision:  "# Vision\nSame content.",
 		Plan:    "# Plan\nNew plan.",
 		Lessons: "# Lessons\nNew lesson.",
-		Readme:  "# README\nSame usage.",
-		Claude:  "# CLAUDE\nNew guidance.",
+		Extra: map[string]string{
+			"README.md": "# README\nSame usage.",
+			"CLAUDE.md": "# CLAUDE\nNew guidance.",
+		},
 	}
 
 	diffs := Compare(parsed, current)
 
 	expected := map[string]string{
-		"Vision":  "unchanged",
-		"Plan":    "changed",
-		"Lessons": "added",
-		"README":  "unchanged",
-		"CLAUDE":  "changed",
+		"Vision":    "unchanged",
+		"Plan":      "changed",
+		"Lessons":   "added",
+		"README.md": "unchanged",
+		"CLAUDE.md": "changed",
 	}
 
 	for _, d := range diffs {
@@ -79,8 +83,6 @@ func TestCompareExtraFiles(t *testing.T) {
 		"Vision":   "unchanged", // both empty
 		"Plan":     "unchanged",
 		"Lessons":  "unchanged",
-		"README":   "unchanged",
-		"CLAUDE":   "unchanged",
 		"NOTES.md": "changed",
 		"OLD.md":   "removed",
 		"NEW.md":   "added",
@@ -159,8 +161,8 @@ func TestCompareDeterministicOrder(t *testing.T) {
 	}
 
 	diffs := Compare(parsed, current)
-	// First 5 should be the built-in sections, then extras sorted.
-	extraDiffs := diffs[5:]
+	// First 3 should be the built-in sections (Vision, Plan, Lessons), then extras sorted.
+	extraDiffs := diffs[3:]
 	for i := 1; i < len(extraDiffs); i++ {
 		if extraDiffs[i-1].Name > extraDiffs[i].Name {
 			t.Errorf("extra diffs not sorted: %q before %q", extraDiffs[i-1].Name, extraDiffs[i].Name)

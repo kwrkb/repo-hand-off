@@ -28,8 +28,50 @@ func TestCollectFiles(t *testing.T) {
 	if files.Lessons != "" {
 		t.Errorf("Lessons = %q, want empty", files.Lessons)
 	}
-	if files.Readme != "" {
-		t.Errorf("Readme = %q, want empty", files.Readme)
+	// README.md is now auto-extra; should not be in Extra if file doesn't exist
+	if _, ok := files.Extra["README.md"]; ok {
+		t.Error("README.md should not be in Extra when file doesn't exist")
+	}
+}
+
+func TestCollectFilesAutoExtra(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "README.md"), []byte("# README"), 0644)
+	os.WriteFile(filepath.Join(dir, "CLAUDE.md"), []byte("# CLAUDE"), 0644)
+	os.WriteFile(filepath.Join(dir, "AGENTS.md"), []byte("# Agents"), 0644)
+
+	files, err := CollectFiles(dir, nil)
+	if err != nil {
+		t.Fatalf("CollectFiles failed: %v", err)
+	}
+
+	if files.Extra["README.md"] != "# README" {
+		t.Errorf("Extra[README.md] = %q, want %q", files.Extra["README.md"], "# README")
+	}
+	if files.Extra["CLAUDE.md"] != "# CLAUDE" {
+		t.Errorf("Extra[CLAUDE.md] = %q, want %q", files.Extra["CLAUDE.md"], "# CLAUDE")
+	}
+	if files.Extra["AGENTS.md"] != "# Agents" {
+		t.Errorf("Extra[AGENTS.md] = %q, want %q", files.Extra["AGENTS.md"], "# Agents")
+	}
+	// GEMINI.md doesn't exist, should not be in Extra
+	if _, ok := files.Extra["GEMINI.md"]; ok {
+		t.Error("GEMINI.md should not be in Extra when file doesn't exist")
+	}
+}
+
+func TestCollectFilesAutoExtraDedupe(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "README.md"), []byte("# README"), 0644)
+
+	// Pass README.md as explicit extra too — should not duplicate
+	files, err := CollectFiles(dir, []string{"README.md"})
+	if err != nil {
+		t.Fatalf("CollectFiles failed: %v", err)
+	}
+
+	if files.Extra["README.md"] != "# README" {
+		t.Errorf("Extra[README.md] = %q, want %q", files.Extra["README.md"], "# README")
 	}
 }
 
