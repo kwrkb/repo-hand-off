@@ -1,6 +1,6 @@
 module github.com/kwrkb/repo-hand-off
 
-go 1.26.1
+go 1.22
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

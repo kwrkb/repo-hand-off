@@ -1,14 +1,18 @@
 # repo-hand-off
 
-開発の「状態」を保存・共有し、人やAI間でシームレスに引き継ぐCLIツール。
+[日本語](README_ja.md)
 
-## インストール
+A CLI tool that captures and shares the "state" of development — enabling seamless handoffs between humans and AI agents.
+
+![demo](demo.gif)
+
+## Install
 
 ```bash
 go install github.com/kwrkb/repo-hand-off/cmd/handoff@latest
 ```
 
-または直接ビルド:
+Or build from source:
 
 ```bash
 git clone https://github.com/kwrkb/repo-hand-off.git
@@ -16,56 +20,57 @@ cd repo-hand-off
 go build -o handoff ./cmd/handoff
 ```
 
-## 使い方
+## Usage
 
-### `handoff export` — 状態のエクスポート
+### `handoff export` — Export project state
 
-プロジェクトの現在の状態を `HANDOFF.md` として書き出します。
-
-```bash
-handoff export                    # HANDOFF.md を生成
-handoff export -o snapshot.md     # 出力先を指定
-handoff export --format xml       # XML 形式で出力
-handoff export --quiet            # 進捗メッセージを抑制
-handoff export --verbose          # 詳細ログを表示
-```
-
-収集される情報:
-- Git 状態（ブランチ、コミット、未コミット変更、リモートURL）
-- プロジェクトファイル（VISION.md, PLAN.md, LESSONS.md, README.md, CLAUDE.md）
-- `.handoff.yaml` の `files` で指定した追加ファイル
-- ディレクトリ構造
-
-### `handoff prompt` — AI向けプロンプト生成
-
-プロジェクトの状態をAIに渡すためのコンテキストとして stdout に出力します。
+Captures the current project state and writes it to `HANDOFF.md`.
 
 ```bash
-handoff prompt                    # Markdown 形式
-handoff prompt --format xml       # XML 形式（Claude向け）
-handoff prompt | pbcopy           # クリップボードにコピー
+handoff export                    # Generate HANDOFF.md
+handoff export -o snapshot.md     # Specify output file
+handoff export --format xml       # Output in XML format
+handoff export --quiet            # Suppress progress messages
+handoff export --verbose          # Show detailed logs
 ```
 
-### `handoff import` — 状態の復元
+Collected information:
+- Git state (branch, commit, uncommitted changes, remote URL)
+- Project files (VISION.md, PLAN.md, LESSONS.md)
+- AI config files auto-detected (README.md, CLAUDE.md, AGENTS.md, GEMINI.md)
+- Additional files specified in `.handoff.yaml`
+- Directory structure
 
-HANDOFF.md からプロジェクトファイル（VISION.md, PLAN.md, LESSONS.md, README.md, CLAUDE.md, Extra files）を復元します。
+### `handoff prompt` — Generate AI-ready prompt
+
+Outputs the project state as a context prompt to stdout, ready to be piped into an AI agent.
 
 ```bash
-handoff import                    # HANDOFF.md からファイルを復元
-handoff import --force            # 既存ファイルを上書き
-handoff import -f snapshot.md     # 入力ファイルを指定
+handoff prompt                    # Markdown format
+handoff prompt --format xml       # XML format (optimized for Claude)
+handoff prompt | pbcopy           # Copy to clipboard
 ```
 
-### `handoff diff` — 状態の比較
+### `handoff import` — Restore project state
 
-HANDOFF.md の各セクションと現在のファイルを比較し、差分状態を表示します。
+Restores project files (VISION.md, PLAN.md, LESSONS.md, and Extra files) from a HANDOFF.md.
 
 ```bash
-handoff diff                      # HANDOFF.md と現在の状態を比較
-handoff diff -f snapshot.md       # 入力ファイルを指定
+handoff import                    # Restore files from HANDOFF.md
+handoff import --force            # Overwrite existing files
+handoff import -f snapshot.md     # Specify input file
 ```
 
-出力例:
+### `handoff diff` — Compare states
+
+Compares each section of HANDOFF.md against the current files and shows the diff status.
+
+```bash
+handoff diff                      # Compare HANDOFF.md with current state
+handoff diff -f snapshot.md       # Specify input file
+```
+
+Example output:
 
 ```
 Section         Status
@@ -73,27 +78,38 @@ Section         Status
 Vision          unchanged
 Plan            changed
 Lessons         added
+README.md       unchanged
+CLAUDE.md       changed
 ```
 
-## 設定ファイル
+## Configuration
 
-プロジェクトルートに `.handoff.yaml` を置くと、デフォルト動作をカスタマイズできます。
+Place a `.handoff.yaml` in the project root to customize default behavior.
 
 ```yaml
-format: markdown        # デフォルト出力形式 ("markdown" or "xml")
-output: HANDOFF.md      # デフォルト出力ファイル名
-depth: 3                # ディレクトリツリーの最大深度
-files:                  # 追加で収集するファイル
+format: markdown        # Default output format ("markdown" or "xml")
+output: HANDOFF.md      # Default output filename
+depth: 3                # Max depth for directory tree
+files:                  # Additional files to collect
   - NOTES.md
   - TODO.md
-exclude:                # ディレクトリツリーから除外するパターン (glob)
+exclude:                # Patterns to exclude from directory tree (glob)
   - "*.log"
   - tmp
 ```
 
-設定ファイルがない場合は全てデフォルト値で動作します。コマンドラインフラグは設定ファイルより優先されます。
+All settings have sensible defaults and work without a config file. CLI flags take precedence over config.
 
-## HANDOFF.md の例
+## Design Philosophy
+
+- **State-first** — Focuses on the "state" of development, not just code
+- **AI-native** — Outputs formats that AI agents can consume directly
+- **CLI-centric** — Lightweight and usable anywhere
+- **Non-invasive** — Never disrupts existing Git or development workflows
+
+See [VISION.md](VISION.md) for details.
+
+## HANDOFF.md Example
 
 ```markdown
 # HANDOFF.md
@@ -105,36 +121,27 @@ exclude:                # ディレクトリツリーから除外するパター
 - Uncommitted changes: no
 
 ## Vision
-(VISION.md の内容)
+(contents of VISION.md)
 
 ## Plan
-(PLAN.md の内容)
+(contents of PLAN.md)
 
 ## Lessons
 Not found.
 
-## README
-(README.md の内容)
+## Extra: README.md
+(contents of README.md)
 
-## CLAUDE
-(CLAUDE.md の内容)
+## Extra: CLAUDE.md
+(contents of CLAUDE.md)
 
 ## Current State
 ### Recent Commits
 - abc1234 feat: add user auth
 
 ## Directory Structure
-(ツリー表示)
+(tree output)
 ```
-
-## 設計思想
-
-- **状態ファースト** — コードではなく「状態」を中心に扱う
-- **AIネイティブ** — AIにそのまま渡せる形式を前提とする
-- **CLI中心** — 軽量で、どこでも使える
-- **非侵襲** — 既存のGit/開発フローを壊さない
-
-詳細は [VISION.md](VISION.md) を参照。
 
 ## License
 

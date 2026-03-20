@@ -195,6 +195,34 @@ README.md / CLAUDE.md を第一級フィールドから Extra に移行し、AGE
 
 ---
 
+## Phase 9: リポジトリ公開準備
+
+公開前に必要な品質・配布・運用基盤を整える。
+
+### Step 1: 必須（公開ブロッカー）
+
+- [ ] LICENSE ファイル作成（MIT — README.md に記載済みだがファイルが未作成）
+- [ ] `handoff version` コマンド追加（`-v` / `--version` フラグ、ビルド時に `ldflags` で埋め込み）
+- [ ] GitHub Actions CI（`.github/workflows/ci.yml`）
+  - `go test ./...`
+  - `go vet ./...`
+  - `golangci-lint run`（オプション）
+  - Go バージョンマトリクス（1.22+）
+
+### Step 2: リリース自動化
+
+- [ ] `.goreleaser.yml` 作成（クロスプラットフォームバイナリ + チェックサム）
+- [ ] GitHub Actions リリースワークフロー（`.github/workflows/release.yml` — タグ push 時に goreleaser 実行）
+- [ ] README にインストール手順追記（`go install` は既存、goreleaser バイナリ DL を追加）
+
+### Step 3: 仕上げ
+
+- [ ] README にバッジ追加（CI status, Go version, License, Go Report Card）
+- [ ] AGENTS.md 内容を正しく更新（現在 Codex 向けテンプレートのコピーが残っている）
+- [ ] PLAN.md の公開向け整理（内部進捗ログの簡素化は任意）
+
+---
+
 ## MVP後（将来フェーズ）
 
 - ~~`.handoff.yaml` 設定ファイル~~ → Phase 6 で実装済み
