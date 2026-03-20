@@ -1,44 +1,49 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Codex, Gemini, etc.) when working with code in this repository.
 
 ## Project Overview
 
-repo-hand-off は、開発の「状態」（コード・計画・意図・学習・現況）を保存・共有し、人やAI間でシームレスに開発を引き継げるようにするCLIツール。詳細は VISION.md を参照。
+repo-hand-off is a CLI tool that captures and shares development "state" (code, plans, intent, lessons, current status) for seamless handoffs between humans and AI agents. See VISION.md for details.
 
 ## Status
 
-MVP 実装済み。`handoff export` / `handoff prompt` が動作する。Phase 4 の README.md 作成が残タスク。
+All MVP phases (1-8) complete. Export, prompt, import, diff commands are functional. AI config files (CLAUDE.md, AGENTS.md, GEMINI.md) are auto-detected.
 
 ## Key Documents
 
-- `VISION.md` — プロジェクトの目的・設計原則・スコープ
-- `PLAN.md` — 実装計画・進捗管理
-- `HANDOFF.md` — 現在の開発状態スナップショット（本ツールが生成する成果物、.gitignore 対象）
+- `VISION.md` — Project purpose, design principles, scope
+- `PLAN.md` — Implementation plan and progress
+- `HANDOFF.md` — Development state snapshot (generated artifact, in .gitignore)
 
 ## Architecture
 
 ```
-main.go              — エントリポイント
-cmd/                  — cobra コマンド定義（root, export, prompt）
-internal/collector/   — Git情報・ファイル・ディレクトリ構造の収集
-internal/renderer/    — HANDOFF.md / AI向けプロンプトの生成
-internal/config/      — 設定管理
+cmd/handoff/main.go   — Entrypoint
+cmd/                   — Cobra command definitions (root, export, prompt, import, diff)
+internal/collector/    — Git info, file, and directory structure collection
+internal/renderer/     — HANDOFF.md / AI prompt generation
+internal/parser/       — HANDOFF.md parsing
+internal/differ/       — Section-level diff comparison
+internal/config/       — Configuration management (.handoff.yaml)
 ```
 
 ## Development Commands
 
 ```bash
-go build -o handoff ./cmd/handoff  # ビルド
-go test ./...               # 全テスト実行
-./handoff export            # HANDOFF.md 生成
-./handoff prompt            # AI向けプロンプトを stdout 出力
-./handoff prompt --format xml  # XML形式で出力
+go build -o handoff ./cmd/handoff  # Build
+go test ./...                      # Run all tests
+go vet ./...                       # Static analysis
+./handoff export                   # Generate HANDOFF.md
+./handoff prompt                   # Output AI-ready prompt to stdout
+./handoff prompt --format xml      # XML format output
+./handoff import                   # Restore files from HANDOFF.md
+./handoff diff                     # Compare HANDOFF.md with current state
 ```
 
 ## Design Principles
 
-- **状態ファースト**: コードではなく「状態」を中心に扱う
-- **AIネイティブ**: AIにそのまま渡せる形式を前提とする
-- **CLI中心**: 軽量で、どこでも使える
-- **非侵襲**: 既存のGit/開発フローを壊さない
+- **State-first**: Focuses on development "state", not just code
+- **AI-native**: Output formats designed for direct AI consumption
+- **CLI-centric**: Lightweight, usable anywhere
+- **Non-invasive**: Never disrupts existing Git or development workflows
