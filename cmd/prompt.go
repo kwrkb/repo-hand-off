@@ -27,7 +27,10 @@ var promptCmd = &cobra.Command{
 		}
 		logVerbose("Collection complete")
 
-		output := renderer.RenderPrompt(snapshot, promptFormat)
+		output, err := renderer.RenderPrompt(snapshot, promptFormat)
+		if err != nil {
+			return err
+		}
 		fmt.Print(output)
 		return nil
 	},

@@ -37,7 +37,10 @@ func TestRenderHandoffNoGit(t *testing.T) {
 		},
 		DirTree: "project/\n├── main.go\n└── go.mod",
 	}
-	result := RenderHandoff(s, FormatMarkdown)
+	result, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
 
 	if !strings.Contains(result, "Git: Not available") {
 		t.Error("should show 'Git: Not available' for empty GitInfo")
@@ -54,7 +57,10 @@ func TestRenderHandoffNoGit(t *testing.T) {
 
 func TestRenderHandoff(t *testing.T) {
 	s := testSnapshot()
-	result := RenderHandoff(s, FormatMarkdown)
+	result, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
 
 	checks := []string{
 		"# HANDOFF.md",
@@ -81,7 +87,10 @@ func TestRenderHandoff(t *testing.T) {
 
 func TestRenderHandoffXML(t *testing.T) {
 	s := testSnapshot()
-	result := RenderHandoff(s, FormatXML)
+	result, err := RenderHandoff(s, FormatXML)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
 
 	checks := []string{
 		"<handoff>",
@@ -114,7 +123,10 @@ func TestRenderHandoffXMLNoGit(t *testing.T) {
 		},
 		DirTree: "project/\n├── main.go\n└── go.mod",
 	}
-	result := RenderHandoff(s, FormatXML)
+	result, err := RenderHandoff(s, FormatXML)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
 
 	if strings.Contains(result, "<project>") {
 		t.Error("should not contain <project> section for empty GitInfo")
@@ -132,7 +144,10 @@ func TestRenderHandoffExtra(t *testing.T) {
 		"NOTES.md": "# Notes\nSome notes.",
 	}
 
-	md := RenderHandoff(s, FormatMarkdown)
+	md, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff markdown failed: %v", err)
+	}
 	if !strings.Contains(md, "## Extra: NOTES.md") {
 		t.Error("markdown should contain extra file section with 'Extra: ' prefix")
 	}
@@ -140,8 +155,91 @@ func TestRenderHandoffExtra(t *testing.T) {
 		t.Error("markdown should contain extra file content")
 	}
 
-	xml := RenderHandoff(s, FormatXML)
+	xml, err := RenderHandoff(s, FormatXML)
+	if err != nil {
+		t.Fatalf("RenderHandoff xml failed: %v", err)
+	}
 	if !strings.Contains(xml, `<extra name="NOTES.md">`) {
 		t.Error("xml should contain extra file tag")
+	}
+}
+
+func TestRenderHandoffInvalidFormat(t *testing.T) {
+	s := testSnapshot()
+	_, err := RenderHandoff(s, "json")
+	if err == nil {
+		t.Fatal("RenderHandoff should return error for invalid format")
+	}
+	if !strings.Contains(err.Error(), "unsupported format") {
+		t.Errorf("error should mention unsupported format, got: %v", err)
+	}
+}
+
+func TestRenderHandoffNoChanges(t *testing.T) {
+	s := testSnapshot()
+	s.Git.HasChanges = false
+	s.Git.DiffSummary = ""
+
+	result, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
+
+	if !strings.Contains(result, "Uncommitted changes: no") {
+		t.Error("should show 'Uncommitted changes: no'")
+	}
+	if strings.Contains(result, "### Uncommitted Changes") {
+		t.Error("should not show diff section when no changes")
+	}
+}
+
+func TestRenderHandoffNoRemote(t *testing.T) {
+	s := testSnapshot()
+	s.Git.RemoteURL = ""
+
+	result, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
+
+	if strings.Contains(result, "Repository:") {
+		t.Error("should not show Repository when RemoteURL is empty")
+	}
+	if !strings.Contains(result, "Branch: main") {
+		t.Error("should still show Branch")
+	}
+}
+
+func TestRenderHandoffEmptySnapshot(t *testing.T) {
+	s := &collector.Snapshot{
+		Timestamp: time.Date(2026, 3, 20, 12, 0, 0, 0, time.UTC),
+		Git:       collector.GitInfo{},
+		Files:     collector.ProjectFiles{},
+		DirTree:   "project/",
+	}
+
+	md, err := RenderHandoff(s, FormatMarkdown)
+	if err != nil {
+		t.Fatalf("RenderHandoff failed: %v", err)
+	}
+	for _, section := range []string{"## Vision", "## Plan", "## Lessons"} {
+		if !strings.Contains(md, section) {
+			t.Errorf("missing section %q", section)
+		}
+	}
+	// All file sections should show "Not found."
+	if strings.Count(md, "Not found.") != 3 {
+		t.Errorf("expected 3 'Not found.' markers, got %d", strings.Count(md, "Not found."))
+	}
+
+	xml, err := RenderHandoff(s, FormatXML)
+	if err != nil {
+		t.Fatalf("RenderHandoff XML failed: %v", err)
+	}
+	// Empty files should not produce XML sections
+	for _, tag := range []string{"<vision>", "<plan>", "<lessons>"} {
+		if strings.Contains(xml, tag) {
+			t.Errorf("empty content should not produce %s tag", tag)
+		}
 	}
 }

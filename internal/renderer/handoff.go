@@ -9,12 +9,14 @@ import (
 )
 
 // RenderHandoff generates HANDOFF content from a snapshot in the given format.
-func RenderHandoff(s *collector.Snapshot, format string) string {
+func RenderHandoff(s *collector.Snapshot, format string) (string, error) {
 	switch format {
 	case FormatXML:
-		return renderHandoffXML(s)
+		return renderHandoffXML(s), nil
+	case FormatMarkdown:
+		return renderHandoffMarkdown(s), nil
 	default:
-		return renderHandoffMarkdown(s)
+		return "", fmt.Errorf("unsupported format %q (valid: %s)", format, strings.Join(ValidFormats, ", "))
 	}
 }
 
