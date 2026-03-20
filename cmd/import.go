@@ -19,7 +19,7 @@ var (
 var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Restore project files from HANDOFF.md",
-	Long:  "Parse HANDOFF.md and write Vision, Plan, and Lessons sections back to their respective files.",
+	Long:  "Parse HANDOFF.md and write project sections back to their respective files.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		data, err := os.ReadFile(importFile)
 		if err != nil {
@@ -35,6 +35,8 @@ var importCmd = &cobra.Command{
 			"VISION.md":  parsed.Vision,
 			"PLAN.md":    parsed.Plan,
 			"LESSONS.md": parsed.Lessons,
+			"README.md":  parsed.Readme,
+			"CLAUDE.md":  parsed.Claude,
 		}
 
 		// Add extra files

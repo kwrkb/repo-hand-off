@@ -9,6 +9,8 @@ type ParsedHandoff struct {
 	Vision  string
 	Plan    string
 	Lessons string
+	Readme  string
+	Claude  string
 	Extra   map[string]string
 }
 
@@ -18,6 +20,8 @@ var handoffSections = map[string]bool{
 	"Vision":              true,
 	"Plan":                true,
 	"Lessons":             true,
+	"README":              true,
+	"CLAUDE":              true,
 	"Current State":       true,
 	"Directory Structure": true,
 }
@@ -57,6 +61,10 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 			result.Plan = body
 		case "Lessons":
 			result.Lessons = body
+		case "README":
+			result.Readme = body
+		case "CLAUDE":
+			result.Claude = body
 		default:
 			if skipSections[name] {
 				continue

@@ -21,6 +21,8 @@ func testSnapshot() *collector.Snapshot {
 		Files: collector.ProjectFiles{
 			Vision: "# Vision\nBuild something great.",
 			Plan:   "# Plan\nStep 1: Do it.",
+			Readme: "# README\nUsage details.",
+			Claude: "# CLAUDE\nAssistant guidance.",
 		},
 		DirTree:    "repo/\n├── main.go\n└── go.mod",
 		RecentLogs: []string{"abc1234 initial commit"},
@@ -73,6 +75,10 @@ func TestRenderHandoff(t *testing.T) {
 		"Step 1: Do it",
 		"## Lessons",
 		"Not found",
+		"## README",
+		"Usage details",
+		"## CLAUDE",
+		"Assistant guidance",
 		"## Current State",
 		"abc1234 initial commit",
 		"## Directory Structure",
@@ -99,6 +105,8 @@ func TestRenderHandoffXML(t *testing.T) {
 		"<branch>main</branch>",
 		"<vision>",
 		"<plan>",
+		"<readme>",
+		"<claude>",
 		"<recent_commits>",
 		"<directory_structure>",
 	}
@@ -227,9 +235,14 @@ func TestRenderHandoffEmptySnapshot(t *testing.T) {
 			t.Errorf("missing section %q", section)
 		}
 	}
+	for _, section := range []string{"## README", "## CLAUDE"} {
+		if !strings.Contains(md, section) {
+			t.Errorf("missing section %q", section)
+		}
+	}
 	// All file sections should show "Not found."
-	if strings.Count(md, "Not found.") != 3 {
-		t.Errorf("expected 3 'Not found.' markers, got %d", strings.Count(md, "Not found."))
+	if strings.Count(md, "Not found.") != 5 {
+		t.Errorf("expected 5 'Not found.' markers, got %d", strings.Count(md, "Not found."))
 	}
 
 	xml, err := RenderHandoff(s, FormatXML)
@@ -237,7 +250,7 @@ func TestRenderHandoffEmptySnapshot(t *testing.T) {
 		t.Fatalf("RenderHandoff XML failed: %v", err)
 	}
 	// Empty files should not produce XML sections
-	for _, tag := range []string{"<vision>", "<plan>", "<lessons>"} {
+	for _, tag := range []string{"<vision>", "<plan>", "<lessons>", "<readme>", "<claude>"} {
 		if strings.Contains(xml, tag) {
 			t.Errorf("empty content should not produce %s tag", tag)
 		}

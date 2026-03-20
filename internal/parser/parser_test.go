@@ -129,12 +129,37 @@ Important notes here.
 	}
 }
 
+func TestParseHandoffReadmeAndClaude(t *testing.T) {
+	content := `# HANDOFF.md
+
+## README
+# README
+Usage details.
+
+## CLAUDE
+# CLAUDE
+Assistant guidance.
+`
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if parsed.Readme != "# README\nUsage details." {
+		t.Errorf("Readme = %q", parsed.Readme)
+	}
+	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Claude = %q", parsed.Claude)
+	}
+}
+
 func TestParseHandoffEmptyContent(t *testing.T) {
 	parsed, err := ParseHandoffMarkdown("")
 	if err != nil {
 		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
 	}
-	if parsed.Vision != "" || parsed.Plan != "" || parsed.Lessons != "" {
+	if parsed.Vision != "" || parsed.Plan != "" || parsed.Lessons != "" || parsed.Readme != "" || parsed.Claude != "" {
 		t.Error("empty content should produce empty parsed result")
 	}
 	if len(parsed.Extra) != 0 {

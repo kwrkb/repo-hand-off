@@ -61,6 +61,8 @@ func TestRenderPromptXML(t *testing.T) {
 		"<project>",
 		"<vision>",
 		"<plan>",
+		"<readme>",
+		"<claude>",
 		"<recent_commits>",
 		"<directory_structure>",
 	}

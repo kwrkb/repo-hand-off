@@ -55,6 +55,14 @@ func renderHandoffMarkdown(s *collector.Snapshot) string {
 	b.WriteString("## Lessons\n")
 	writeContentOrNotFound(&b, s.Files.Lessons)
 
+	// README
+	b.WriteString("## README\n")
+	writeContentOrNotFound(&b, s.Files.Readme)
+
+	// CLAUDE
+	b.WriteString("## CLAUDE\n")
+	writeContentOrNotFound(&b, s.Files.Claude)
+
 	// Extra files (prefixed with "Extra: " to distinguish from content headers)
 	if len(s.Files.Extra) > 0 {
 		keys := sortedKeys(s.Files.Extra)
@@ -113,6 +121,8 @@ func renderHandoffXMLBody(b *strings.Builder, s *collector.Snapshot) {
 	writeXMLSection(b, "vision", s.Files.Vision)
 	writeXMLSection(b, "plan", s.Files.Plan)
 	writeXMLSection(b, "lessons", s.Files.Lessons)
+	writeXMLSection(b, "readme", s.Files.Readme)
+	writeXMLSection(b, "claude", s.Files.Claude)
 
 	// Extra files
 	if len(s.Files.Extra) > 0 {
