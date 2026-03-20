@@ -128,13 +128,13 @@ func buildTree(root, dir, prefix string, maxDepth, depth int, lines *[]string) e
 	return nil
 }
 
+// Pre-sorted list for binary search.
+var skipNames = []string{
+	".DS_Store", ".git", ".idea", ".next", ".venv", ".vscode",
+	"__pycache__", "build", "dist", "node_modules", "target", "vendor",
+}
+
 func shouldSkip(name string) bool {
-	skip := []string{
-		".git", "node_modules", ".venv", "__pycache__",
-		".idea", ".vscode", ".DS_Store", "vendor",
-		"dist", "build", ".next", "target",
-	}
-	sort.Strings(skip) // for binary search
-	i := sort.SearchStrings(skip, name)
-	return i < len(skip) && skip[i] == name
+	i := sort.SearchStrings(skipNames, name)
+	return i < len(skipNames) && skipNames[i] == name
 }

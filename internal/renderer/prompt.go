@@ -7,10 +7,15 @@ import (
 	"github.com/kwrkb/repo-hand-off/internal/collector"
 )
 
+const (
+	FormatMarkdown = "markdown"
+	FormatXML      = "xml"
+)
+
 // RenderPrompt generates an AI-ready prompt from a snapshot.
 func RenderPrompt(s *collector.Snapshot, format string) string {
 	switch format {
-	case "xml":
+	case FormatXML:
 		return renderXML(s)
 	default:
 		return renderMarkdown(s)

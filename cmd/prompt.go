@@ -33,6 +33,6 @@ var promptCmd = &cobra.Command{
 }
 
 func init() {
-	promptCmd.Flags().StringVar(&promptFormat, "format", "markdown", "Output format: markdown or xml")
+	promptCmd.Flags().StringVar(&promptFormat, "format", renderer.FormatMarkdown, "Output format: markdown or xml")
 	rootCmd.AddCommand(promptCmd)
 }

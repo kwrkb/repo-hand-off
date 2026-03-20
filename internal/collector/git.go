@@ -74,4 +74,3 @@ func gitCmd(dir string, args ...string) (string, error) {
 	}
 	return strings.TrimSpace(string(out)), nil
 }
-
