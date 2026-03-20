@@ -61,8 +61,8 @@ func TestRenderPromptXML(t *testing.T) {
 		"<project>",
 		"<vision>",
 		"<plan>",
-		"<readme>",
-		"<claude>",
+		`<extra name="CLAUDE.md">`,
+		`<extra name="README.md">`,
 		"<recent_commits>",
 		"<directory_structure>",
 	}

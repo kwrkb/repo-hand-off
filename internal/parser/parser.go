@@ -9,8 +9,6 @@ type ParsedHandoff struct {
 	Vision  string
 	Plan    string
 	Lessons string
-	Readme  string
-	Claude  string
 	Extra   map[string]string
 }
 
@@ -62,15 +60,15 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 		case "Lessons":
 			result.Lessons = body
 		case "README":
-			result.Readme = stripCodeFence(body)
+			result.Extra["README.md"] = stripCodeFence(body)
 		case "CLAUDE":
-			result.Claude = stripCodeFence(body)
+			result.Extra["CLAUDE.md"] = stripCodeFence(body)
 		default:
 			if skipSections[name] {
 				continue
 			}
 			if strings.HasPrefix(name, extraPrefix) {
-				result.Extra[strings.TrimPrefix(name, extraPrefix)] = body
+				result.Extra[strings.TrimPrefix(name, extraPrefix)] = stripCodeFence(body)
 			}
 		}
 	}

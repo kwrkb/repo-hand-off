@@ -14,8 +14,6 @@ type ProjectFiles struct {
 	Vision  string
 	Plan    string
 	Lessons string
-	Readme  string
-	Claude  string
 	Extra   map[string]string
 }
 
@@ -27,8 +25,14 @@ var knownFiles = []struct {
 	{"Vision", "VISION.md"},
 	{"Plan", "PLAN.md"},
 	{"Lessons", "LESSONS.md"},
-	{"Readme", "README.md"},
-	{"Claude", "CLAUDE.md"},
+}
+
+// autoExtraFiles are files automatically included in Extra if they exist.
+var autoExtraFiles = []string{
+	"README.md",
+	"CLAUDE.md",
+	"AGENTS.md",
+	"GEMINI.md",
 }
 
 // CollectFiles reads key project files from the given directory.
@@ -46,23 +50,27 @@ func CollectFiles(dir string, extraFiles []string) (*ProjectFiles, error) {
 			pf.Plan = content
 		case "Lessons":
 			pf.Lessons = content
-		case "Readme":
-			pf.Readme = content
-		case "Claude":
-			pf.Claude = content
 		}
 	}
 
-	if len(extraFiles) > 0 {
-		pf.Extra = make(map[string]string)
-		for _, f := range extraFiles {
-			content, err := readFileIfExists(filepath.Join(dir, f))
-			if err != nil {
-				return nil, err
-			}
-			if content != "" {
-				pf.Extra[f] = content
-			}
+	// Merge autoExtraFiles and extraFiles (deduplicated, order preserved)
+	allExtra := make([]string, 0, len(autoExtraFiles)+len(extraFiles))
+	seen := make(map[string]bool)
+	for _, f := range append(autoExtraFiles, extraFiles...) {
+		if !seen[f] {
+			allExtra = append(allExtra, f)
+			seen[f] = true
+		}
+	}
+
+	pf.Extra = make(map[string]string)
+	for _, f := range allExtra {
+		content, err := readFileIfExists(filepath.Join(dir, f))
+		if err != nil {
+			return nil, err
+		}
+		if content != "" {
+			pf.Extra[f] = content
 		}
 	}
 

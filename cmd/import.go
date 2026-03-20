@@ -35,8 +35,6 @@ var importCmd = &cobra.Command{
 			"VISION.md":  parsed.Vision,
 			"PLAN.md":    parsed.Plan,
 			"LESSONS.md": parsed.Lessons,
-			"README.md":  parsed.Readme,
-			"CLAUDE.md":  parsed.Claude,
 		}
 
 		// Add extra files
@@ -67,6 +65,13 @@ var importCmd = &cobra.Command{
 			if !strings.HasPrefix(resolved, workDir+string(filepath.Separator)) && resolved != workDir {
 				logInfo("Skipping %s (path traversal detected)", filename)
 				continue
+			}
+
+			// Ensure parent directory exists (for subdirectory paths like .claude/CLAUDE.md)
+			if dir := filepath.Dir(resolved); dir != workDir {
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					return fmt.Errorf("failed to create directory for %s: %w", filename, err)
+				}
 			}
 
 			if !importForce {
