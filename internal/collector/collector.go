@@ -14,8 +14,15 @@ type Snapshot struct {
 	RecentLogs []string
 }
 
+// CollectOptions configures the Collect function.
+type CollectOptions struct {
+	ExtraFiles []string
+	Exclude    []string
+	Depth      int // 0 → default 3
+}
+
 // Collect gathers a full project snapshot from the given directory.
-func Collect(dir string) (*Snapshot, error) {
+func Collect(dir string, opts CollectOptions) (*Snapshot, error) {
 	git, err := CollectGit(dir)
 	if err != nil {
 		if !errors.Is(err, ErrNotGitRepo) {
@@ -24,12 +31,12 @@ func Collect(dir string) (*Snapshot, error) {
 		git = &GitInfo{} // non-fatal: not a Git repo
 	}
 
-	files, err := CollectFiles(dir)
+	files, err := CollectFiles(dir, opts.ExtraFiles)
 	if err != nil {
 		return nil, err
 	}
 
-	tree, err := BuildDirTree(dir, 3)
+	tree, err := BuildDirTree(dir, opts.Depth, opts.Exclude)
 	if err != nil {
 		return nil, err
 	}

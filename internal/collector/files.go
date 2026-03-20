@@ -16,6 +16,7 @@ type ProjectFiles struct {
 	Lessons string
 	Readme  string
 	Claude  string
+	Extra   map[string]string
 }
 
 // knownFiles maps field names to file paths to look for.
@@ -31,7 +32,7 @@ var knownFiles = []struct {
 }
 
 // CollectFiles reads key project files from the given directory.
-func CollectFiles(dir string) (*ProjectFiles, error) {
+func CollectFiles(dir string, extraFiles []string) (*ProjectFiles, error) {
 	pf := &ProjectFiles{}
 	for _, kf := range knownFiles {
 		content, err := readFileIfExists(filepath.Join(dir, kf.Path))
@@ -51,6 +52,20 @@ func CollectFiles(dir string) (*ProjectFiles, error) {
 			pf.Claude = content
 		}
 	}
+
+	if len(extraFiles) > 0 {
+		pf.Extra = make(map[string]string)
+		for _, f := range extraFiles {
+			content, err := readFileIfExists(filepath.Join(dir, f))
+			if err != nil {
+				return nil, err
+			}
+			if content != "" {
+				pf.Extra[f] = content
+			}
+		}
+	}
+
 	return pf, nil
 }
 
@@ -66,19 +81,21 @@ func readFileIfExists(path string) (string, error) {
 }
 
 // BuildDirTree builds a tree representation of the directory up to maxDepth.
-// It respects .gitignore patterns by checking git ls-files.
-func BuildDirTree(dir string, maxDepth int) (string, error) {
+func BuildDirTree(dir string, maxDepth int, exclude []string) (string, error) {
+	if maxDepth <= 0 {
+		maxDepth = 3
+	}
 	var lines []string
 	lines = append(lines, filepath.Base(dir)+"/")
 
-	err := buildTree(dir, dir, "", maxDepth, 0, &lines)
+	err := buildTree(dir, dir, "", maxDepth, 0, exclude, &lines)
 	if err != nil {
 		return "", err
 	}
 	return strings.Join(lines, "\n"), nil
 }
 
-func buildTree(root, dir, prefix string, maxDepth, depth int, lines *[]string) error {
+func buildTree(root, dir, prefix string, maxDepth, depth int, exclude []string, lines *[]string) error {
 	if depth >= maxDepth {
 		return nil
 	}
@@ -92,7 +109,7 @@ func buildTree(root, dir, prefix string, maxDepth, depth int, lines *[]string) e
 	var dirs, files []fs.DirEntry
 	for _, e := range entries {
 		name := e.Name()
-		if shouldSkip(name) {
+		if shouldSkip(name, exclude) {
 			continue
 		}
 		if e.IsDir() {
@@ -119,7 +136,7 @@ func buildTree(root, dir, prefix string, maxDepth, depth int, lines *[]string) e
 		*lines = append(*lines, fmt.Sprintf("%s%s%s", prefix, connector, name))
 
 		if e.IsDir() {
-			err := buildTree(root, filepath.Join(dir, e.Name()), prefix+childPrefix, maxDepth, depth+1, lines)
+			err := buildTree(root, filepath.Join(dir, e.Name()), prefix+childPrefix, maxDepth, depth+1, exclude, lines)
 			if err != nil {
 				return err
 			}
@@ -134,7 +151,15 @@ var skipNames = []string{
 	"__pycache__", "build", "dist", "node_modules", "target", "vendor",
 }
 
-func shouldSkip(name string) bool {
+func shouldSkip(name string, exclude []string) bool {
 	i := sort.SearchStrings(skipNames, name)
-	return i < len(skipNames) && skipNames[i] == name
+	if i < len(skipNames) && skipNames[i] == name {
+		return true
+	}
+	for _, pattern := range exclude {
+		if matched, _ := filepath.Match(pattern, name); matched {
+			return true
+		}
+	}
+	return false
 }

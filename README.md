@@ -25,11 +25,15 @@ go build -o handoff .
 ```bash
 handoff export                    # HANDOFF.md を生成
 handoff export -o snapshot.md     # 出力先を指定
+handoff export --format xml       # XML 形式で出力
+handoff export --quiet            # 進捗メッセージを抑制
+handoff export --verbose          # 詳細ログを表示
 ```
 
 収集される情報:
 - Git 状態（ブランチ、コミット、未コミット変更、リモートURL）
 - プロジェクトファイル（VISION.md, PLAN.md, LESSONS.md, README.md, CLAUDE.md）
+- `.handoff.yaml` の `files` で指定した追加ファイル
 - ディレクトリ構造
 
 ### `handoff prompt` — AI向けプロンプト生成
@@ -41,6 +45,53 @@ handoff prompt                    # Markdown 形式
 handoff prompt --format xml       # XML 形式（Claude向け）
 handoff prompt | pbcopy           # クリップボードにコピー
 ```
+
+### `handoff import` — 状態の復元
+
+HANDOFF.md からプロジェクトファイル（VISION.md, PLAN.md, LESSONS.md）を復元します。
+
+```bash
+handoff import                    # HANDOFF.md からファイルを復元
+handoff import --force            # 既存ファイルを上書き
+handoff import -f snapshot.md     # 入力ファイルを指定
+```
+
+### `handoff diff` — 状態の比較
+
+HANDOFF.md の各セクションと現在のファイルを比較し、差分状態を表示します。
+
+```bash
+handoff diff                      # HANDOFF.md と現在の状態を比較
+handoff diff -f snapshot.md       # 入力ファイルを指定
+```
+
+出力例:
+
+```
+Section         Status
+-------         ------
+Vision          unchanged
+Plan            changed
+Lessons         added
+```
+
+## 設定ファイル
+
+プロジェクトルートに `.handoff.yaml` を置くと、デフォルト動作をカスタマイズできます。
+
+```yaml
+format: markdown        # デフォルト出力形式 ("markdown" or "xml")
+output: HANDOFF.md      # デフォルト出力ファイル名
+depth: 3                # ディレクトリツリーの最大深度
+files:                  # 追加で収集するファイル
+  - NOTES.md
+  - TODO.md
+exclude:                # ディレクトリツリーから除外するパターン (glob)
+  - "*.log"
+  - tmp
+```
+
+設定ファイルがない場合は全てデフォルト値で動作します。コマンドラインフラグは設定ファイルより優先されます。
 
 ## HANDOFF.md の例
 
