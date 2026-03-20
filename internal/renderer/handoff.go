@@ -16,14 +16,18 @@ func RenderHandoff(s *collector.Snapshot) string {
 
 	// Project section
 	b.WriteString("## Project\n")
-	if s.Git.RemoteURL != "" {
-		b.WriteString(fmt.Sprintf("- Repository: %s\n", s.Git.RemoteURL))
-	}
-	b.WriteString(fmt.Sprintf("- Branch: %s @ %s\n", s.Git.Branch, s.Git.ShortHash))
-	if s.Git.HasChanges {
-		b.WriteString("- Uncommitted changes: yes\n")
+	if s.Git.Branch != "" {
+		if s.Git.RemoteURL != "" {
+			b.WriteString(fmt.Sprintf("- Repository: %s\n", s.Git.RemoteURL))
+		}
+		b.WriteString(fmt.Sprintf("- Branch: %s @ %s\n", s.Git.Branch, s.Git.ShortHash))
+		if s.Git.HasChanges {
+			b.WriteString("- Uncommitted changes: yes\n")
+		} else {
+			b.WriteString("- Uncommitted changes: no\n")
+		}
 	} else {
-		b.WriteString("- Uncommitted changes: no\n")
+		b.WriteString("- Git: Not available\n")
 	}
 	b.WriteString("\n")
 

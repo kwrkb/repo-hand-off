@@ -45,14 +45,16 @@ func renderXML(s *collector.Snapshot) string {
 	b.WriteString("Read it carefully, then continue development based on the plan and current state.\n")
 	b.WriteString("</instructions>\n\n")
 
-	b.WriteString("<project>\n")
-	if s.Git.RemoteURL != "" {
-		b.WriteString(fmt.Sprintf("  <repository>%s</repository>\n", s.Git.RemoteURL))
+	if s.Git.Branch != "" {
+		b.WriteString("<project>\n")
+		if s.Git.RemoteURL != "" {
+			b.WriteString(fmt.Sprintf("  <repository>%s</repository>\n", s.Git.RemoteURL))
+		}
+		b.WriteString(fmt.Sprintf("  <branch>%s</branch>\n", s.Git.Branch))
+		b.WriteString(fmt.Sprintf("  <commit>%s</commit>\n", s.Git.ShortHash))
+		b.WriteString(fmt.Sprintf("  <uncommitted_changes>%t</uncommitted_changes>\n", s.Git.HasChanges))
+		b.WriteString("</project>\n\n")
 	}
-	b.WriteString(fmt.Sprintf("  <branch>%s</branch>\n", s.Git.Branch))
-	b.WriteString(fmt.Sprintf("  <commit>%s</commit>\n", s.Git.ShortHash))
-	b.WriteString(fmt.Sprintf("  <uncommitted_changes>%t</uncommitted_changes>\n", s.Git.HasChanges))
-	b.WriteString("</project>\n\n")
 
 	writeXMLSection(&b, "vision", s.Files.Vision)
 	writeXMLSection(&b, "plan", s.Files.Plan)

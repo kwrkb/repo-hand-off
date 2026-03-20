@@ -1,6 +1,9 @@
 package collector
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // Snapshot holds all collected project state.
 type Snapshot struct {
@@ -15,7 +18,10 @@ type Snapshot struct {
 func Collect(dir string) (*Snapshot, error) {
 	git, err := CollectGit(dir)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, ErrNotGitRepo) {
+			return nil, err
+		}
+		git = &GitInfo{} // non-fatal: not a Git repo
 	}
 
 	files, err := CollectFiles(dir)
@@ -28,10 +34,9 @@ func Collect(dir string) (*Snapshot, error) {
 		return nil, err
 	}
 
-	logs, err := RecentCommits(dir, 10)
-	if err != nil {
-		// non-fatal: repo may have no commits
-		logs = nil
+	var logs []string
+	if git.Branch != "" {
+		logs, _ = RecentCommits(dir, 10) // non-fatal: repo may have no commits
 	}
 
 	return &Snapshot{

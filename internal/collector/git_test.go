@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -72,6 +73,18 @@ func TestCollectGitWithChanges(t *testing.T) {
 
 	if !info.HasChanges {
 		t.Error("HasChanges should be true after adding a file")
+	}
+}
+
+func TestCollectGitNonGitDir(t *testing.T) {
+	dir := t.TempDir() // plain directory, not a git repo
+
+	_, err := CollectGit(dir)
+	if err == nil {
+		t.Fatal("CollectGit should return error for non-git directory")
+	}
+	if !errors.Is(err, ErrNotGitRepo) {
+		t.Errorf("expected ErrNotGitRepo, got: %v", err)
 	}
 }
 
