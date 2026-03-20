@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kwrkb/repo-hand-off/internal/collector"
@@ -11,13 +12,18 @@ const (
 	FormatXML      = "xml"
 )
 
+// ValidFormats contains all supported output format names.
+var ValidFormats = []string{FormatMarkdown, FormatXML}
+
 // RenderPrompt generates an AI-ready prompt from a snapshot.
-func RenderPrompt(s *collector.Snapshot, format string) string {
+func RenderPrompt(s *collector.Snapshot, format string) (string, error) {
 	switch format {
 	case FormatXML:
-		return renderPromptXML(s)
+		return renderPromptXML(s), nil
+	case FormatMarkdown:
+		return renderPromptMarkdown(s), nil
 	default:
-		return renderPromptMarkdown(s)
+		return "", fmt.Errorf("unsupported format %q (valid: %s)", format, strings.Join(ValidFormats, ", "))
 	}
 }
 
@@ -29,7 +35,8 @@ func renderPromptMarkdown(s *collector.Snapshot) string {
 	b.WriteString("Below is the current state of the project. ")
 	b.WriteString("Read it carefully, then continue development based on the plan and current state.\n\n")
 	b.WriteString("---\n\n")
-	b.WriteString(RenderHandoff(s, FormatMarkdown))
+	handoff, _ := RenderHandoff(s, FormatMarkdown) // format is hardcoded, cannot fail
+	b.WriteString(handoff)
 
 	return b.String()
 }

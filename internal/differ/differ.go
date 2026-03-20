@@ -26,6 +26,8 @@ func Compare(parsed *parser.ParsedHandoff, current *collector.ProjectFiles) []Se
 		{"Vision", parsed.Vision, current.Vision},
 		{"Plan", parsed.Plan, current.Plan},
 		{"Lessons", parsed.Lessons, current.Lessons},
+		{"README", parsed.Readme, current.Readme},
+		{"CLAUDE", parsed.Claude, current.Claude},
 	}
 
 	var diffs []SectionDiff

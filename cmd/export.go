@@ -34,7 +34,10 @@ var exportCmd = &cobra.Command{
 		}
 		logVerbose("Collection complete")
 
-		content := renderer.RenderHandoff(snapshot, exportFormat)
+		content, err := renderer.RenderHandoff(snapshot, exportFormat)
+		if err != nil {
+			return err
+		}
 
 		if err := os.WriteFile(exportOutput, []byte(content), 0644); err != nil {
 			return fmt.Errorf("failed to write %s: %w", exportOutput, err)

@@ -17,7 +17,10 @@ func TestRenderPromptXMLNoGit(t *testing.T) {
 		},
 		DirTree: "project/\n├── main.go\n└── go.mod",
 	}
-	result := RenderPrompt(s, "xml")
+	result, err := RenderPrompt(s, "xml")
+	if err != nil {
+		t.Fatalf("RenderPrompt failed: %v", err)
+	}
 
 	if strings.Contains(result, "<project>") {
 		t.Error("should not contain <project> section for empty GitInfo")
@@ -31,7 +34,10 @@ func TestRenderPromptXMLNoGit(t *testing.T) {
 
 func TestRenderPromptMarkdown(t *testing.T) {
 	s := testSnapshot()
-	result := RenderPrompt(s, "markdown")
+	result, err := RenderPrompt(s, "markdown")
+	if err != nil {
+		t.Fatalf("RenderPrompt failed: %v", err)
+	}
 
 	if !strings.Contains(result, "# Project Handoff Context") {
 		t.Error("markdown prompt should contain header")
@@ -43,7 +49,10 @@ func TestRenderPromptMarkdown(t *testing.T) {
 
 func TestRenderPromptXML(t *testing.T) {
 	s := testSnapshot()
-	result := RenderPrompt(s, "xml")
+	result, err := RenderPrompt(s, "xml")
+	if err != nil {
+		t.Fatalf("RenderPrompt failed: %v", err)
+	}
 
 	checks := []string{
 		"<handoff>",
@@ -52,6 +61,8 @@ func TestRenderPromptXML(t *testing.T) {
 		"<project>",
 		"<vision>",
 		"<plan>",
+		"<readme>",
+		"<claude>",
 		"<recent_commits>",
 		"<directory_structure>",
 	}
@@ -61,3 +72,15 @@ func TestRenderPromptXML(t *testing.T) {
 		}
 	}
 }
+
+func TestRenderPromptInvalidFormat(t *testing.T) {
+	s := testSnapshot()
+	_, err := RenderPrompt(s, "yaml")
+	if err == nil {
+		t.Fatal("RenderPrompt should return error for invalid format")
+	}
+	if !strings.Contains(err.Error(), "unsupported format") {
+		t.Errorf("error should mention unsupported format, got: %v", err)
+	}
+}
+

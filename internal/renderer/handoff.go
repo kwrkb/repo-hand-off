@@ -9,12 +9,14 @@ import (
 )
 
 // RenderHandoff generates HANDOFF content from a snapshot in the given format.
-func RenderHandoff(s *collector.Snapshot, format string) string {
+func RenderHandoff(s *collector.Snapshot, format string) (string, error) {
 	switch format {
 	case FormatXML:
-		return renderHandoffXML(s)
+		return renderHandoffXML(s), nil
+	case FormatMarkdown:
+		return renderHandoffMarkdown(s), nil
 	default:
-		return renderHandoffMarkdown(s)
+		return "", fmt.Errorf("unsupported format %q (valid: %s)", format, strings.Join(ValidFormats, ", "))
 	}
 }
 
@@ -52,6 +54,14 @@ func renderHandoffMarkdown(s *collector.Snapshot) string {
 	// Lessons
 	b.WriteString("## Lessons\n")
 	writeContentOrNotFound(&b, s.Files.Lessons)
+
+	// README (fenced to prevent internal ## headers from splitting sections)
+	b.WriteString("## README\n")
+	writeFencedContentOrNotFound(&b, s.Files.Readme)
+
+	// CLAUDE (fenced to prevent internal ## headers from splitting sections)
+	b.WriteString("## CLAUDE\n")
+	writeFencedContentOrNotFound(&b, s.Files.Claude)
 
 	// Extra files (prefixed with "Extra: " to distinguish from content headers)
 	if len(s.Files.Extra) > 0 {
@@ -111,6 +121,8 @@ func renderHandoffXMLBody(b *strings.Builder, s *collector.Snapshot) {
 	writeXMLSection(b, "vision", s.Files.Vision)
 	writeXMLSection(b, "plan", s.Files.Plan)
 	writeXMLSection(b, "lessons", s.Files.Lessons)
+	writeXMLSection(b, "readme", s.Files.Readme)
+	writeXMLSection(b, "claude", s.Files.Claude)
 
 	// Extra files
 	if len(s.Files.Extra) > 0 {
@@ -150,6 +162,19 @@ func writeContentOrNotFound(b *strings.Builder, content string) {
 			b.WriteString("\n")
 		}
 		b.WriteString("\n")
+	}
+}
+
+func writeFencedContentOrNotFound(b *strings.Builder, content string) {
+	if content == "" {
+		b.WriteString("Not found.\n\n")
+	} else {
+		b.WriteString("````markdown\n")
+		b.WriteString(content)
+		if !strings.HasSuffix(content, "\n") {
+			b.WriteString("\n")
+		}
+		b.WriteString("````\n\n")
 	}
 }
 

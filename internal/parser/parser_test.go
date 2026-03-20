@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -95,5 +96,157 @@ Not found.
 	}
 	if parsed.Lessons != "" {
 		t.Errorf("Lessons should be empty for 'Not found.', got %q", parsed.Lessons)
+	}
+}
+
+func TestParseHandoffExtraSections(t *testing.T) {
+	content := `# HANDOFF.md
+
+## Vision
+# Vision
+Build it.
+
+## Extra: NOTES.md
+# Notes
+Important notes here.
+
+## Extra: TODO.md
+- [ ] Do something.
+
+## Directory Structure
+` + "```\nrepo/\n```\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if parsed.Extra["NOTES.md"] != "# Notes\nImportant notes here." {
+		t.Errorf("Extra[NOTES.md] = %q", parsed.Extra["NOTES.md"])
+	}
+	if parsed.Extra["TODO.md"] != "- [ ] Do something." {
+		t.Errorf("Extra[TODO.md] = %q", parsed.Extra["TODO.md"])
+	}
+}
+
+func TestParseHandoffReadmeAndClaude(t *testing.T) {
+	content := "# HANDOFF.md\n\n## README\n````markdown\n# README\nUsage details.\n````\n\n## CLAUDE\n````markdown\n# CLAUDE\nAssistant guidance.\n````\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if parsed.Readme != "# README\nUsage details." {
+		t.Errorf("Readme = %q", parsed.Readme)
+	}
+	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Claude = %q", parsed.Claude)
+	}
+}
+
+func TestParseHandoffReadmeWithConflictingHeaders(t *testing.T) {
+	content := "# HANDOFF.md\n\n## README\n````markdown\n# README\n## Plan\nThis is not a plan section.\n## Vision\nThis is not a vision section.\n````\n\n## Plan\n# Plan\nActual plan.\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if !strings.Contains(parsed.Readme, "## Plan") {
+		t.Error("Readme should contain ## Plan as content, not split it")
+	}
+	if !strings.Contains(parsed.Readme, "## Vision") {
+		t.Error("Readme should contain ## Vision as content")
+	}
+	if parsed.Plan != "# Plan\nActual plan." {
+		t.Errorf("Plan = %q, should be actual plan content", parsed.Plan)
+	}
+}
+
+func TestParseHandoffReadmeUnfenced(t *testing.T) {
+	// Backward compatibility: unfenced README/CLAUDE content should still work
+	content := "# HANDOFF.md\n\n## README\n# README\nUsage details.\n\n## CLAUDE\n# CLAUDE\nAssistant guidance.\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if parsed.Readme != "# README\nUsage details." {
+		t.Errorf("Readme = %q", parsed.Readme)
+	}
+	if parsed.Claude != "# CLAUDE\nAssistant guidance." {
+		t.Errorf("Claude = %q", parsed.Claude)
+	}
+}
+
+func TestParseHandoffEmptyContent(t *testing.T) {
+	parsed, err := ParseHandoffMarkdown("")
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+	if parsed.Vision != "" || parsed.Plan != "" || parsed.Lessons != "" || parsed.Readme != "" || parsed.Claude != "" {
+		t.Error("empty content should produce empty parsed result")
+	}
+	if len(parsed.Extra) != 0 {
+		t.Error("empty content should produce no extras")
+	}
+}
+
+func TestParseHandoffNestedHeaders(t *testing.T) {
+	content := `## Vision
+# My Vision
+## Overview
+This is a nested header that should be part of the body.
+## Another nested one
+More content.
+
+## Plan
+# Plan content.
+`
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	// Nested ## headers that aren't known sections should be preserved
+	if parsed.Vision == "" {
+		t.Error("Vision should not be empty")
+	}
+	if !strings.Contains(parsed.Vision, "## Overview") {
+		t.Error("nested ## headers should be preserved in body")
+	}
+	if !strings.Contains(parsed.Vision, "## Another nested one") {
+		t.Error("nested ## headers should be preserved in body")
+	}
+}
+
+func TestParseHandoffSkipSections(t *testing.T) {
+	content := `## Project
+- Branch: main @ abc1234
+
+## Vision
+Build it.
+
+## Current State
+### Recent Commits
+- abc1234 initial
+
+## Directory Structure
+` + "```\nrepo/\n```\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	if parsed.Vision != "Build it." {
+		t.Errorf("Vision = %q", parsed.Vision)
+	}
+	// Project, Current State, Directory Structure should not appear in extra
+	if len(parsed.Extra) != 0 {
+		t.Errorf("skip sections should not appear in extra, got %v", parsed.Extra)
 	}
 }

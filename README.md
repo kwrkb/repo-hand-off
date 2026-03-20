@@ -48,7 +48,7 @@ handoff prompt | pbcopy           # クリップボードにコピー
 
 ### `handoff import` — 状態の復元
 
-HANDOFF.md からプロジェクトファイル（VISION.md, PLAN.md, LESSONS.md）を復元します。
+HANDOFF.md からプロジェクトファイル（VISION.md, PLAN.md, LESSONS.md, README.md, CLAUDE.md, Extra files）を復元します。
 
 ```bash
 handoff import                    # HANDOFF.md からファイルを復元
@@ -112,6 +112,12 @@ exclude:                # ディレクトリツリーから除外するパター
 
 ## Lessons
 Not found.
+
+## README
+(README.md の内容)
+
+## CLAUDE
+(CLAUDE.md の内容)
 
 ## Current State
 ### Recent Commits

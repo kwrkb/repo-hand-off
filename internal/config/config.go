@@ -39,7 +39,7 @@ func Load(dir string) (*Config, error) {
 
 	cfg := DefaultConfig()
 	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse .handoff.yaml: %w", err)
 	}
 
 	for _, pattern := range cfg.Exclude {

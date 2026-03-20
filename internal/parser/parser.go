@@ -9,6 +9,8 @@ type ParsedHandoff struct {
 	Vision  string
 	Plan    string
 	Lessons string
+	Readme  string
+	Claude  string
 	Extra   map[string]string
 }
 
@@ -18,6 +20,8 @@ var handoffSections = map[string]bool{
 	"Vision":              true,
 	"Plan":                true,
 	"Lessons":             true,
+	"README":              true,
+	"CLAUDE":              true,
 	"Current State":       true,
 	"Directory Structure": true,
 }
@@ -57,6 +61,10 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 			result.Plan = body
 		case "Lessons":
 			result.Lessons = body
+		case "README":
+			result.Readme = stripCodeFence(body)
+		case "CLAUDE":
+			result.Claude = stripCodeFence(body)
 		default:
 			if skipSections[name] {
 				continue
@@ -72,14 +80,22 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 
 // splitSections splits markdown content by ## headers that are known
 // HANDOFF.md sections or "Extra: " prefixed sections. Nested ## headers
-// within content are preserved as part of the section body.
+// within content are preserved as part of the section body. Code fences
+// (```` or ```) are tracked so that ## headers inside them are not treated
+// as section boundaries.
 func splitSections(content string) map[string]string {
 	sections := make(map[string]string)
 	var currentName string
 	var currentBody strings.Builder
+	inFence := false
 
 	for _, line := range strings.Split(content, "\n") {
-		if strings.HasPrefix(line, "## ") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "````") || (!inFence && strings.HasPrefix(trimmed, "```")) {
+			inFence = !inFence
+		}
+
+		if !inFence && strings.HasPrefix(line, "## ") {
 			name := strings.TrimPrefix(line, "## ")
 			if isHandoffSection(name) {
 				// Save previous section
@@ -107,6 +123,20 @@ func splitSections(content string) map[string]string {
 	}
 
 	return sections
+}
+
+// stripCodeFence removes a wrapping code fence (````markdown ... ````) if present.
+func stripCodeFence(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return s
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) >= 2 && strings.HasPrefix(lines[0], "````") && strings.HasPrefix(lines[len(lines)-1], "````") {
+		inner := strings.Join(lines[1:len(lines)-1], "\n")
+		return strings.TrimSpace(inner)
+	}
+	return s
 }
 
 // normalizeBody trims whitespace and treats "Not found." as empty.
