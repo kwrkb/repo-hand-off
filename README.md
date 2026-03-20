@@ -1,5 +1,10 @@
 # repo-hand-off
 
+[![CI](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml/badge.svg)](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/kwrkb/repo-hand-off)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kwrkb/repo-hand-off)](https://goreportcard.com/report/github.com/kwrkb/repo-hand-off)
+
 [日本語](README_ja.md)
 
 A CLI tool that captures and shares the "state" of development — enabling seamless handoffs between humans and AI agents.
@@ -11,6 +16,8 @@ A CLI tool that captures and shares the "state" of development — enabling seam
 ```bash
 go install github.com/kwrkb/repo-hand-off/cmd/handoff@latest
 ```
+
+Or download a prebuilt binary from [Releases](https://github.com/kwrkb/repo-hand-off/releases).
 
 Or build from source:
 
