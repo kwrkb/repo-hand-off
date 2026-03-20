@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/kwrkb/repo-hand-off/internal/parser"
 	"github.com/spf13/cobra"
@@ -54,9 +55,20 @@ var importCmd = &cobra.Command{
 				logVerbose("Skipping %s (empty)", filename)
 				continue
 			}
-			path := filepath.Join(workDir, filename)
+
+			// Prevent path traversal: resolve and verify target stays under workDir
+			target := filepath.Join(workDir, filename)
+			resolved, err := filepath.Abs(target)
+			if err != nil {
+				return fmt.Errorf("failed to resolve path for %s: %w", filename, err)
+			}
+			if !strings.HasPrefix(resolved, workDir+string(filepath.Separator)) && resolved != workDir {
+				logInfo("Skipping %s (path traversal detected)", filename)
+				continue
+			}
+
 			if !importForce {
-				f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+				f, err := os.OpenFile(resolved, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 				if err != nil {
 					if os.IsExist(err) {
 						logInfo("Skipping %s (already exists, use --force to overwrite)", filename)
@@ -68,9 +80,11 @@ var importCmd = &cobra.Command{
 					f.Close()
 					return fmt.Errorf("failed to write %s: %w", filename, err)
 				}
-				f.Close()
+				if err := f.Close(); err != nil {
+					return fmt.Errorf("failed to close %s: %w", filename, err)
+				}
 			} else {
-				if err := os.WriteFile(path, []byte(content+"\n"), 0644); err != nil {
+				if err := os.WriteFile(resolved, []byte(content+"\n"), 0644); err != nil {
 					return fmt.Errorf("failed to write %s: %w", filename, err)
 				}
 			}

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"path/filepath"
 	"strings"
 )
 
@@ -31,14 +30,15 @@ var skipSections = map[string]bool{
 	"HANDOFF.md":          true,
 }
 
+const extraPrefix = "Extra: "
+
 // isHandoffSection returns true if the header is a known HANDOFF.md section
-// or looks like a filename (has a file extension, e.g., "NOTES.md").
+// or an extra file section (prefixed with "Extra: ").
 func isHandoffSection(name string) bool {
 	if handoffSections[name] {
 		return true
 	}
-	ext := filepath.Ext(name)
-	return ext != "" && !strings.Contains(ext, " ")
+	return strings.HasPrefix(name, extraPrefix)
 }
 
 // ParseHandoffMarkdown parses a HANDOFF.md file into structured sections.
@@ -58,8 +58,11 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 		case "Lessons":
 			result.Lessons = body
 		default:
-			if !skipSections[name] {
-				result.Extra[name] = body
+			if skipSections[name] {
+				continue
+			}
+			if strings.HasPrefix(name, extraPrefix) {
+				result.Extra[strings.TrimPrefix(name, extraPrefix)] = body
 			}
 		}
 	}
@@ -68,8 +71,8 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 }
 
 // splitSections splits markdown content by ## headers that are known
-// HANDOFF.md sections or filenames. Nested ## headers within content
-// are preserved as part of the section body.
+// HANDOFF.md sections or "Extra: " prefixed sections. Nested ## headers
+// within content are preserved as part of the section body.
 func splitSections(content string) map[string]string {
 	sections := make(map[string]string)
 	var currentName string

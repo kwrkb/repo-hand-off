@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -40,5 +41,12 @@ func Load(dir string) (*Config, error) {
 	if err := yaml.Unmarshal(data, cfg); err != nil {
 		return nil, err
 	}
+
+	for _, pattern := range cfg.Exclude {
+		if _, err := filepath.Match(pattern, ""); err != nil {
+			return nil, fmt.Errorf("invalid exclude pattern %q in .handoff.yaml: %w", pattern, err)
+		}
+	}
+
 	return cfg, nil
 }

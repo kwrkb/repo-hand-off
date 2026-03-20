@@ -133,8 +133,8 @@ func TestRenderHandoffExtra(t *testing.T) {
 	}
 
 	md := RenderHandoff(s, FormatMarkdown)
-	if !strings.Contains(md, "## NOTES.md") {
-		t.Error("markdown should contain extra file section")
+	if !strings.Contains(md, "## Extra: NOTES.md") {
+		t.Error("markdown should contain extra file section with 'Extra: ' prefix")
 	}
 	if !strings.Contains(md, "Some notes.") {
 		t.Error("markdown should contain extra file content")

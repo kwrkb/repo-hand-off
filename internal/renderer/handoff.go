@@ -53,11 +53,11 @@ func renderHandoffMarkdown(s *collector.Snapshot) string {
 	b.WriteString("## Lessons\n")
 	writeContentOrNotFound(&b, s.Files.Lessons)
 
-	// Extra files
+	// Extra files (prefixed with "Extra: " to distinguish from content headers)
 	if len(s.Files.Extra) > 0 {
 		keys := sortedKeys(s.Files.Extra)
 		for _, name := range keys {
-			b.WriteString(fmt.Sprintf("## %s\n", name))
+			b.WriteString(fmt.Sprintf("## Extra: %s\n", name))
 			writeContentOrNotFound(&b, s.Files.Extra[name])
 		}
 	}

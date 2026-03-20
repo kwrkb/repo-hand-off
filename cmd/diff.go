@@ -27,8 +27,15 @@ var diffCmd = &cobra.Command{
 			return fmt.Errorf("failed to parse %s: %w", diffFile, err)
 		}
 
+		// Merge extra file names from parsed HANDOFF into collect options
+		// so differ can compare them against current files on disk
+		opts := collectOpts()
+		for name := range parsed.Extra {
+			opts.ExtraFiles = append(opts.ExtraFiles, name)
+		}
+
 		logVerbose("Collecting current project state from %s", workDir)
-		snapshot, err := collector.Collect(workDir, collectOpts())
+		snapshot, err := collector.Collect(workDir, opts)
 		if err != nil {
 			return fmt.Errorf("failed to collect project state: %w", err)
 		}
