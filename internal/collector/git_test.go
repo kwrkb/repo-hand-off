@@ -75,6 +75,15 @@ func TestCollectGitWithChanges(t *testing.T) {
 	}
 }
 
+func TestCollectGitNonGitDir(t *testing.T) {
+	dir := t.TempDir() // plain directory, not a git repo
+
+	_, err := CollectGit(dir)
+	if err == nil {
+		t.Error("CollectGit should return error for non-git directory")
+	}
+}
+
 func TestRecentCommits(t *testing.T) {
 	dir := setupGitRepo(t)
 

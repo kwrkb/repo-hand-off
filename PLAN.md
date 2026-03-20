@@ -93,6 +93,28 @@ repo-hand-off/
 
 ---
 
+## Phase 5: 非Gitディレクトリ対応（完了）
+
+設計意図（Phase 2 記載）では非Git環境での graceful skip を想定していたが、実装では `CollectGit` 失敗時に即エラー終了する。修正して非Gitでも動作させる。
+
+### ゴール
+
+- Git情報は "Not available" として扱い、エラーにしない
+- ファイル収集（VISION.md, PLAN.md 等）・ディレクトリツリーは通常どおり動作する
+- `handoff export` / `handoff prompt` が非Gitディレクトリで正常に動く
+
+### タスク
+
+- [x] `collector.go`: `CollectGit` 失敗時にエラーを返さず、空の `GitInfo` で続行する
+  > `Branch != ""` で `RecentCommits` 呼び出しもガード（非Git時の不要な git log 実行を回避）
+- [x] `renderer/handoff.go`: Git情報が空の場合 "Not available" を表示する
+- [x] `renderer/prompt.go`: XML出力で `<project>` セクション自体を省略
+- [x] テスト: 非Gitディレクトリでの `Collect` / レンダリングのテスト追加
+  > `TestCollectGitNonGitDir`, `TestRenderHandoffNoGit`, `TestRenderPromptXMLNoGit` の3件追加
+- [x] 検証: 非Gitディレクトリで `handoff export` / `handoff prompt` を実行して動作確認
+
+---
+
 ## MVP後（将来フェーズ）
 
 - `.handoff.yaml` 設定ファイル

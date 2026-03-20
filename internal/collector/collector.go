@@ -15,7 +15,7 @@ type Snapshot struct {
 func Collect(dir string) (*Snapshot, error) {
 	git, err := CollectGit(dir)
 	if err != nil {
-		return nil, err
+		git = &GitInfo{} // non-fatal: not a Git repo
 	}
 
 	files, err := CollectFiles(dir)
@@ -28,10 +28,13 @@ func Collect(dir string) (*Snapshot, error) {
 		return nil, err
 	}
 
-	logs, err := RecentCommits(dir, 10)
-	if err != nil {
-		// non-fatal: repo may have no commits
-		logs = nil
+	var logs []string
+	if git.Branch != "" {
+		logs, err = RecentCommits(dir, 10)
+		if err != nil {
+			// non-fatal: repo may have no commits
+			logs = nil
+		}
 	}
 
 	return &Snapshot{
