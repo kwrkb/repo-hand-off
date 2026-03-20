@@ -55,12 +55,12 @@ func renderHandoffMarkdown(s *collector.Snapshot) string {
 	b.WriteString("## Lessons\n")
 	writeContentOrNotFound(&b, s.Files.Lessons)
 
-	// Extra files (prefixed with "Extra: " to distinguish from content headers)
+	// Extra files (fenced to prevent internal ## headers from splitting sections)
 	if len(s.Files.Extra) > 0 {
 		keys := sortedKeys(s.Files.Extra)
 		for _, name := range keys {
 			b.WriteString(fmt.Sprintf("## Extra: %s\n", name))
-			writeContentOrNotFound(&b, s.Files.Extra[name])
+			writeFencedContent(&b, s.Files.Extra[name])
 		}
 	}
 
@@ -153,6 +153,15 @@ func writeContentOrNotFound(b *strings.Builder, content string) {
 		}
 		b.WriteString("\n")
 	}
+}
+
+func writeFencedContent(b *strings.Builder, content string) {
+	b.WriteString("````\n")
+	b.WriteString(content)
+	if !strings.HasSuffix(content, "\n") {
+		b.WriteString("\n")
+	}
+	b.WriteString("````\n\n")
 }
 
 func writeXMLSection(b *strings.Builder, tag, content string) {

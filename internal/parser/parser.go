@@ -68,7 +68,7 @@ func ParseHandoffMarkdown(content string) (*ParsedHandoff, error) {
 				continue
 			}
 			if strings.HasPrefix(name, extraPrefix) {
-				result.Extra[strings.TrimPrefix(name, extraPrefix)] = body
+				result.Extra[strings.TrimPrefix(name, extraPrefix)] = stripCodeFence(body)
 			}
 		}
 	}

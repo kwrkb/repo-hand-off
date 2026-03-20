@@ -129,6 +129,24 @@ Important notes here.
 	}
 }
 
+func TestParseHandoffExtraFenced(t *testing.T) {
+	// New format: Extra sections are fenced to prevent ## headers from splitting
+	content := "# HANDOFF.md\n\n## Extra: README.md\n````\n# README\n## Plan\nThis is not a plan section.\n````\n\n## Plan\n# Plan\nActual plan.\n"
+
+	parsed, err := ParseHandoffMarkdown(content)
+	if err != nil {
+		t.Fatalf("ParseHandoffMarkdown failed: %v", err)
+	}
+
+	readme := parsed.Extra["README.md"]
+	if !strings.Contains(readme, "## Plan") {
+		t.Error("README.md should contain ## Plan as content, not split it")
+	}
+	if parsed.Plan != "# Plan\nActual plan." {
+		t.Errorf("Plan = %q, should be actual plan content", parsed.Plan)
+	}
+}
+
 func TestParseHandoffReadmeAndClaude(t *testing.T) {
 	content := "# HANDOFF.md\n\n## README\n````markdown\n# README\nUsage details.\n````\n\n## CLAUDE\n````markdown\n# CLAUDE\nAssistant guidance.\n````\n"
 

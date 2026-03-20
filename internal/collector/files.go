@@ -56,13 +56,7 @@ func CollectFiles(dir string, extraFiles []string) (*ProjectFiles, error) {
 	// Merge autoExtraFiles and extraFiles (deduplicated, order preserved)
 	allExtra := make([]string, 0, len(autoExtraFiles)+len(extraFiles))
 	seen := make(map[string]bool)
-	for _, f := range autoExtraFiles {
-		if !seen[f] {
-			allExtra = append(allExtra, f)
-			seen[f] = true
-		}
-	}
-	for _, f := range extraFiles {
+	for _, f := range append(autoExtraFiles, extraFiles...) {
 		if !seen[f] {
 			allExtra = append(allExtra, f)
 			seen[f] = true
