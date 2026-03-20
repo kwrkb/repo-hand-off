@@ -29,7 +29,7 @@ internal/config/      — 設定管理
 ## Development Commands
 
 ```bash
-go build -o handoff .       # ビルド
+go build -o handoff ./cmd/handoff  # ビルド
 go test ./...               # 全テスト実行
 ./handoff export            # HANDOFF.md 生成
 ./handoff prompt            # AI向けプロンプトを stdout 出力

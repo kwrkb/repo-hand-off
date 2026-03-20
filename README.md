@@ -5,7 +5,7 @@
 ## インストール
 
 ```bash
-go install github.com/kwrkb/repo-hand-off@latest
+go install github.com/kwrkb/repo-hand-off/cmd/handoff@latest
 ```
 
 または直接ビルド:
@@ -13,7 +13,7 @@ go install github.com/kwrkb/repo-hand-off@latest
 ```bash
 git clone https://github.com/kwrkb/repo-hand-off.git
 cd repo-hand-off
-go build -o handoff .
+go build -o handoff ./cmd/handoff
 ```
 
 ## 使い方
