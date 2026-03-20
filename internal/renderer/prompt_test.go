@@ -22,7 +22,6 @@ func TestRenderPromptXMLNoGit(t *testing.T) {
 	if strings.Contains(result, "<project>") {
 		t.Error("should not contain <project> section for empty GitInfo")
 	}
-	// Other sections should still render
 	for _, check := range []string{"<handoff>", "<vision>", "<directory_structure>"} {
 		if !strings.Contains(result, check) {
 			t.Errorf("xml prompt missing %q", check)

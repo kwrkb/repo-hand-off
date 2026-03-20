@@ -2,13 +2,23 @@ package renderer
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/kwrkb/repo-hand-off/internal/collector"
 )
 
-// RenderHandoff generates HANDOFF.md content from a snapshot.
-func RenderHandoff(s *collector.Snapshot) string {
+// RenderHandoff generates HANDOFF content from a snapshot in the given format.
+func RenderHandoff(s *collector.Snapshot, format string) string {
+	switch format {
+	case FormatXML:
+		return renderHandoffXML(s)
+	default:
+		return renderHandoffMarkdown(s)
+	}
+}
+
+func renderHandoffMarkdown(s *collector.Snapshot) string {
 	var b strings.Builder
 
 	b.WriteString("# HANDOFF.md\n")
@@ -43,6 +53,15 @@ func RenderHandoff(s *collector.Snapshot) string {
 	b.WriteString("## Lessons\n")
 	writeContentOrNotFound(&b, s.Files.Lessons)
 
+	// Extra files
+	if len(s.Files.Extra) > 0 {
+		keys := sortedKeys(s.Files.Extra)
+		for _, name := range keys {
+			b.WriteString(fmt.Sprintf("## %s\n", name))
+			writeContentOrNotFound(&b, s.Files.Extra[name])
+		}
+	}
+
 	// Current State
 	b.WriteString("## Current State\n")
 	if len(s.RecentLogs) > 0 {
@@ -68,6 +87,60 @@ func RenderHandoff(s *collector.Snapshot) string {
 	return b.String()
 }
 
+func renderHandoffXML(s *collector.Snapshot) string {
+	var b strings.Builder
+	b.WriteString("<handoff>\n")
+	renderHandoffXMLBody(&b, s)
+	b.WriteString("</handoff>\n")
+	return b.String()
+}
+
+// renderHandoffXMLBody writes the inner XML content (without <handoff> wrapper).
+func renderHandoffXMLBody(b *strings.Builder, s *collector.Snapshot) {
+	if s.Git.Branch != "" {
+		b.WriteString("<project>\n")
+		if s.Git.RemoteURL != "" {
+			b.WriteString(fmt.Sprintf("  <repository>%s</repository>\n", s.Git.RemoteURL))
+		}
+		b.WriteString(fmt.Sprintf("  <branch>%s</branch>\n", s.Git.Branch))
+		b.WriteString(fmt.Sprintf("  <commit>%s</commit>\n", s.Git.ShortHash))
+		b.WriteString(fmt.Sprintf("  <uncommitted_changes>%t</uncommitted_changes>\n", s.Git.HasChanges))
+		b.WriteString("</project>\n\n")
+	}
+
+	writeXMLSection(b, "vision", s.Files.Vision)
+	writeXMLSection(b, "plan", s.Files.Plan)
+	writeXMLSection(b, "lessons", s.Files.Lessons)
+
+	// Extra files
+	if len(s.Files.Extra) > 0 {
+		keys := sortedKeys(s.Files.Extra)
+		for _, name := range keys {
+			b.WriteString(fmt.Sprintf("<extra name=\"%s\">\n", name))
+			b.WriteString(strings.TrimSpace(s.Files.Extra[name]))
+			b.WriteString("\n</extra>\n\n")
+		}
+	}
+
+	if len(s.RecentLogs) > 0 {
+		b.WriteString("<recent_commits>\n")
+		for _, log := range s.RecentLogs {
+			b.WriteString(fmt.Sprintf("  <commit>%s</commit>\n", log))
+		}
+		b.WriteString("</recent_commits>\n\n")
+	}
+
+	if s.Git.DiffSummary != "" {
+		b.WriteString("<uncommitted_changes>\n")
+		b.WriteString(s.Git.DiffSummary)
+		b.WriteString("\n</uncommitted_changes>\n\n")
+	}
+
+	b.WriteString("<directory_structure>\n")
+	b.WriteString(s.DirTree)
+	b.WriteString("\n</directory_structure>\n")
+}
+
 func writeContentOrNotFound(b *strings.Builder, content string) {
 	if content == "" {
 		b.WriteString("Not found.\n\n")
@@ -78,4 +151,22 @@ func writeContentOrNotFound(b *strings.Builder, content string) {
 		}
 		b.WriteString("\n")
 	}
+}
+
+func writeXMLSection(b *strings.Builder, tag, content string) {
+	if content == "" {
+		return
+	}
+	b.WriteString(fmt.Sprintf("<%s>\n", tag))
+	b.WriteString(strings.TrimSpace(content))
+	b.WriteString(fmt.Sprintf("\n</%s>\n\n", tag))
+}
+
+func sortedKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

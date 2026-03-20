@@ -115,11 +115,51 @@ repo-hand-off/
 
 ---
 
+## Phase 6: 機能拡張（config / format / quiet-verbose / import / diff）（完了）
+
+5 機能を一括実装。
+
+### Sub-phase A: `.handoff.yaml` 設定ファイル（完了）
+
+- [x] `internal/config/config.go` — Config struct, Load, DefaultConfig
+- [x] `internal/config/config_test.go` — missing / partial / full YAML テスト
+- [x] `collector.go` — `CollectOptions` 導入（ExtraFiles, Exclude, Depth）
+- [x] `files.go` — `Extra` フィールド追加、`CollectFiles` / `BuildDirTree` / `shouldSkip` 拡張
+- [x] `cmd/root.go` — `PersistentPreRunE` で config ロード
+- [x] `cmd/export.go` / `cmd/prompt.go` — config デフォルト適用
+- [x] `renderer/handoff.go` / `prompt.go` — Extra files レンダリング
+
+### Sub-phase B: `--quiet` / `--verbose`（完了）
+
+- [x] `cmd/root.go` — PersistentFlags + `logInfo` / `logVerbose` ヘルパー
+- [x] `cmd/export.go` / `cmd/prompt.go` — ログ出力置き換え
+
+### Sub-phase C: `export --format xml`（完了）
+
+- [x] `renderer/handoff.go` — `RenderHandoff(s, format)` に変更、XML レンダリング追加
+- [x] `cmd/export.go` — `--format` フラグ追加
+- [x] `renderer/prompt.go` — 内部で `renderHandoffXML` を再利用
+- [x] テスト — `TestRenderHandoffXML`, `TestRenderHandoffXMLNoGit`
+
+### Sub-phase D: `handoff import`（完了）
+
+- [x] `internal/parser/parser.go` — `ParseHandoffMarkdown` (既知セクション境界のみで分割)
+- [x] `internal/parser/parser_test.go` — 正常 / 欠損 / "Not found." テスト
+- [x] `cmd/import.go` — `--force`, `--file` フラグ
+
+### Sub-phase E: `handoff diff`（完了）
+
+- [x] `internal/differ/differ.go` — `Compare` (unchanged/changed/added/removed)
+- [x] `internal/differ/differ_test.go` — 全ステータステスト
+- [x] `cmd/diff.go` — テーブル形式出力
+
+---
+
 ## MVP後（将来フェーズ）
 
-- `.handoff.yaml` 設定ファイル
+- ~~`.handoff.yaml` 設定ファイル~~ → Phase 6 で実装済み
 - ~~`--format xml`（Claude向け）~~ → Phase 3 で実装済み
-- `handoff import` / `handoff diff`
+- ~~`handoff import` / `handoff diff`~~ → Phase 6 で実装済み
 - MCP サーバー対応
 - Homebrew / バイナリ配布
 
@@ -131,3 +171,12 @@ repo-hand-off/
 2. 非Git ディレクトリで `handoff export` → Git セクションスキップで正常動作
 3. `handoff prompt` → stdout に AI 向けプロンプト出力
 4. `go test ./...` 全テストパス
+5. `.handoff.yaml` なしで既存動作に変更なし
+6. `.handoff.yaml` ありで設定反映（files, exclude, depth, format, output）
+7. `handoff export --format xml` → XML 出力
+8. `handoff export --quiet` → stderr 出力なし
+9. `handoff export --verbose` → 詳細ログ表示
+10. `handoff import` → HANDOFF.md からファイル復元
+11. `handoff import --force` → 既存ファイル上書き
+12. `handoff diff` → セクション比較結果表示
+13. Git / 非Git ディレクトリ両方で全コマンド正常動作

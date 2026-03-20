@@ -37,7 +37,7 @@ func TestRenderHandoffNoGit(t *testing.T) {
 		},
 		DirTree: "project/\n├── main.go\n└── go.mod",
 	}
-	result := RenderHandoff(s)
+	result := RenderHandoff(s, FormatMarkdown)
 
 	if !strings.Contains(result, "Git: Not available") {
 		t.Error("should show 'Git: Not available' for empty GitInfo")
@@ -45,7 +45,6 @@ func TestRenderHandoffNoGit(t *testing.T) {
 	if strings.Contains(result, "Branch:") {
 		t.Error("should not show Branch for empty GitInfo")
 	}
-	// Other sections should still render
 	for _, check := range []string{"## Vision", "## Plan", "## Directory Structure", "Build something great"} {
 		if !strings.Contains(result, check) {
 			t.Errorf("output missing %q", check)
@@ -55,7 +54,7 @@ func TestRenderHandoffNoGit(t *testing.T) {
 
 func TestRenderHandoff(t *testing.T) {
 	s := testSnapshot()
-	result := RenderHandoff(s)
+	result := RenderHandoff(s, FormatMarkdown)
 
 	checks := []string{
 		"# HANDOFF.md",
@@ -77,5 +76,72 @@ func TestRenderHandoff(t *testing.T) {
 		if !strings.Contains(result, check) {
 			t.Errorf("output missing %q", check)
 		}
+	}
+}
+
+func TestRenderHandoffXML(t *testing.T) {
+	s := testSnapshot()
+	result := RenderHandoff(s, FormatXML)
+
+	checks := []string{
+		"<handoff>",
+		"</handoff>",
+		"<project>",
+		"<branch>main</branch>",
+		"<vision>",
+		"<plan>",
+		"<recent_commits>",
+		"<directory_structure>",
+	}
+	for _, check := range checks {
+		if !strings.Contains(result, check) {
+			t.Errorf("xml output missing %q", check)
+		}
+	}
+
+	// Should NOT contain <instructions>
+	if strings.Contains(result, "<instructions>") {
+		t.Error("handoff XML should not contain <instructions>")
+	}
+}
+
+func TestRenderHandoffXMLNoGit(t *testing.T) {
+	s := &collector.Snapshot{
+		Timestamp: time.Date(2026, 3, 20, 12, 0, 0, 0, time.UTC),
+		Git:       collector.GitInfo{},
+		Files: collector.ProjectFiles{
+			Vision: "# Vision\nBuild something great.",
+		},
+		DirTree: "project/\n├── main.go\n└── go.mod",
+	}
+	result := RenderHandoff(s, FormatXML)
+
+	if strings.Contains(result, "<project>") {
+		t.Error("should not contain <project> section for empty GitInfo")
+	}
+	for _, check := range []string{"<handoff>", "<vision>", "<directory_structure>"} {
+		if !strings.Contains(result, check) {
+			t.Errorf("xml output missing %q", check)
+		}
+	}
+}
+
+func TestRenderHandoffExtra(t *testing.T) {
+	s := testSnapshot()
+	s.Files.Extra = map[string]string{
+		"NOTES.md": "# Notes\nSome notes.",
+	}
+
+	md := RenderHandoff(s, FormatMarkdown)
+	if !strings.Contains(md, "## NOTES.md") {
+		t.Error("markdown should contain extra file section")
+	}
+	if !strings.Contains(md, "Some notes.") {
+		t.Error("markdown should contain extra file content")
+	}
+
+	xml := RenderHandoff(s, FormatXML)
+	if !strings.Contains(xml, `<extra name="NOTES.md">`) {
+		t.Error("xml should contain extra file tag")
 	}
 }
