@@ -1,10 +1,14 @@
 package collector
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
 )
+
+// ErrNotGitRepo indicates the directory is not a Git repository.
+var ErrNotGitRepo = errors.New("not a git repository")
 
 // GitInfo holds Git repository state.
 type GitInfo struct {
@@ -21,6 +25,10 @@ func CollectGit(dir string) (*GitInfo, error) {
 
 	branch, err := gitCmd(dir, "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && strings.Contains(string(exitErr.Stderr), "not a git repository") {
+			return nil, ErrNotGitRepo
+		}
 		return nil, err
 	}
 	info.Branch = branch

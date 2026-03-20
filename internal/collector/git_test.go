@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -80,7 +81,10 @@ func TestCollectGitNonGitDir(t *testing.T) {
 
 	_, err := CollectGit(dir)
 	if err == nil {
-		t.Error("CollectGit should return error for non-git directory")
+		t.Fatal("CollectGit should return error for non-git directory")
+	}
+	if !errors.Is(err, ErrNotGitRepo) {
+		t.Errorf("expected ErrNotGitRepo, got: %v", err)
 	}
 }
 
