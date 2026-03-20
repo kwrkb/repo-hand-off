@@ -9,6 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set at build time via ldflags.
+var Version = "dev"
+
 var (
 	cfg     *config.Config
 	workDir string
@@ -17,9 +20,10 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "handoff",
-	Short: "Export and share development state for seamless handoffs",
-	Long:  "repo-hand-off preserves development context (code, plans, intent, lessons) and enables seamless handoffs between humans and AI.",
+	Use:     "handoff",
+	Short:   "Export and share development state for seamless handoffs",
+	Long:    "repo-hand-off preserves development context (code, plans, intent, lessons) and enables seamless handoffs between humans and AI.",
+	Version: Version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		workDir, err = os.Getwd()

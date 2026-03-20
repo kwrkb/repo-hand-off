@@ -1,5 +1,10 @@
 # repo-hand-off
 
+[![CI](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml/badge.svg)](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/kwrkb/repo-hand-off)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kwrkb/repo-hand-off)](https://goreportcard.com/report/github.com/kwrkb/repo-hand-off)
+
 [English](README.md)
 
 開発の「状態」を保存・共有し、人やAI間でシームレスに引き継ぐCLIツール。
@@ -11,6 +16,8 @@
 ```bash
 go install github.com/kwrkb/repo-hand-off/cmd/handoff@latest
 ```
+
+または [Releases](https://github.com/kwrkb/repo-hand-off/releases) からビルド済みバイナリをダウンロード。
 
 または直接ビルド:
 
