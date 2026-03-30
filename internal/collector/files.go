@@ -191,6 +191,7 @@ func CountTodos(dir string, exclude []string) (int, error) {
 		for scanner.Scan() {
 			count += len(todoPattern.FindAllString(scanner.Text(), -1))
 		}
+		// Ignore scanner errors (e.g. token too long): count what we could read
 		return nil
 	})
 	return count, err

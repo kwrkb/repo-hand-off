@@ -47,6 +47,8 @@ var doctorCmd = &cobra.Command{
 		fmt.Print(output)
 
 		if doctorStrict && renderer.CountErrors(findings) > 0 {
+			// Diagnostic output is already printed; exit directly to avoid
+			// cobra printing a redundant error message.
 			os.Exit(1)
 		}
 
