@@ -60,7 +60,7 @@ func TestDiagnose(t *testing.T) {
 		TodoCount: 3,
 	}
 
-	findings := Diagnose(s, 10)
+	findings := Diagnose(s, DiagnoseOptions{TodoThreshold: 10})
 	// Should have no errors or warnings for a well-configured project
 	for _, f := range findings {
 		if f.Severity == Error {

@@ -2,16 +2,22 @@ package doctor
 
 import "github.com/kwrkb/repo-hand-off/internal/collector"
 
+// DiagnoseOptions configures the Diagnose function.
+type DiagnoseOptions struct {
+	TodoThreshold int
+	OutputPath    string // handoff output file path (for handoff-exists rule)
+}
+
 // Diagnose runs all default rules against the snapshot.
-// todoThreshold configures the TODO/FIXME count threshold.
-func Diagnose(snapshot *collector.Snapshot, todoThreshold int) []Finding {
+func Diagnose(snapshot *collector.Snapshot, opts DiagnoseOptions) []Finding {
 	rules := make([]Rule, len(defaultRules))
 	copy(rules, defaultRules)
-	// Replace TodoFixmeCount with configured threshold
 	for i, r := range rules {
-		if r.Name() == "todo-fixme-count" {
-			rules[i] = &TodoFixmeCount{Threshold: todoThreshold}
-			break
+		switch r.Name() {
+		case "todo-fixme-count":
+			rules[i] = &TodoFixmeCount{Threshold: opts.TodoThreshold}
+		case "handoff-exists":
+			rules[i] = &HandoffExists{OutputPath: opts.OutputPath}
 		}
 	}
 	return DiagnoseWith(snapshot, rules)

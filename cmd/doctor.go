@@ -28,8 +28,10 @@ var doctorCmd = &cobra.Command{
 		}
 		logVerbose("Collection complete, running diagnostics")
 
-		todoThreshold := cfg.TodoThreshold
-		findings := doctor.Diagnose(snapshot, todoThreshold)
+		findings := doctor.Diagnose(snapshot, doctor.DiagnoseOptions{
+			TodoThreshold: cfg.TodoThreshold,
+			OutputPath:    cfg.Output,
+		})
 		logVerbose("Diagnostics complete: %d findings", len(findings))
 
 		var output string

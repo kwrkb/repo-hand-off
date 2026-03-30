@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/kwrkb/repo-hand-off/internal/collector"
 )
@@ -21,7 +20,7 @@ var defaultRules = []Rule{
 	&GitignoreExists{},
 	&UncommittedChanges{},
 	&TodoFixmeCount{Threshold: 10},
-	&HandoffFreshness{MaxAge: 7 * 24 * time.Hour},
+	&HandoffExists{},
 	&VisionNotEmpty{},
 	&PlanNotEmpty{},
 }
@@ -195,39 +194,27 @@ func (r *TodoFixmeCount) Run(s *collector.Snapshot) []Finding {
 	return nil
 }
 
-// --- Rule 10: HandoffFreshness ---
+// --- Rule 10: HandoffExists ---
 
-type HandoffFreshness struct {
-	MaxAge time.Duration
+type HandoffExists struct {
+	OutputPath string // configurable output path (defaults to "HANDOFF.md")
 }
 
-func (r *HandoffFreshness) Name() string { return "handoff-freshness" }
-func (r *HandoffFreshness) Run(s *collector.Snapshot) []Finding {
+func (r *HandoffExists) Name() string { return "handoff-exists" }
+func (r *HandoffExists) Run(s *collector.Snapshot) []Finding {
 	if s.WorkDir == "" {
 		return nil
 	}
-	path := filepath.Join(s.WorkDir, "HANDOFF.md")
-	info, err := os.Stat(path)
-	if err != nil {
+	name := r.OutputPath
+	if name == "" {
+		name = "HANDOFF.md"
+	}
+	if _, err := os.Stat(filepath.Join(s.WorkDir, name)); err != nil {
 		return []Finding{{
 			Rule:     r.Name(),
 			Severity: Warning,
-			Message:  "HANDOFF.md が見つかりません",
-			Action:   "handoff export を実行して HANDOFF.md を生成してください",
-		}}
-	}
-	maxAge := r.MaxAge
-	if maxAge <= 0 {
-		maxAge = 7 * 24 * time.Hour
-	}
-	age := time.Since(info.ModTime())
-	if age > maxAge {
-		days := int(age.Hours() / 24)
-		return []Finding{{
-			Rule:     r.Name(),
-			Severity: Warning,
-			Message:  fmt.Sprintf("HANDOFF.md の最終更新が %d 日前です", days),
-			Action:   "handoff export を実行して HANDOFF.md を更新してください",
+			Message:  fmt.Sprintf("%s が見つかりません", name),
+			Action:   "handoff export を実行して " + name + " を生成してください",
 		}}
 	}
 	return nil

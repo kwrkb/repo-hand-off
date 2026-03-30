@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/kwrkb/repo-hand-off/internal/collector"
 )
@@ -207,11 +206,11 @@ func TestTodoFixmeCount(t *testing.T) {
 	}
 }
 
-func TestHandoffFreshness(t *testing.T) {
+func TestHandoffExists(t *testing.T) {
 	t.Run("missing", func(t *testing.T) {
 		dir := t.TempDir()
 		s := &collector.Snapshot{WorkDir: dir}
-		got := (&HandoffFreshness{MaxAge: 7 * 24 * time.Hour}).Run(s)
+		got := (&HandoffExists{}).Run(s)
 		if len(got) != 1 {
 			t.Fatalf("findings = %d, want 1", len(got))
 		}
@@ -220,30 +219,35 @@ func TestHandoffFreshness(t *testing.T) {
 		}
 	})
 
-	t.Run("fresh", func(t *testing.T) {
+	t.Run("present", func(t *testing.T) {
 		dir := t.TempDir()
 		os.WriteFile(filepath.Join(dir, "HANDOFF.md"), []byte("# HANDOFF"), 0644)
 		s := &collector.Snapshot{WorkDir: dir}
-		got := (&HandoffFreshness{MaxAge: 7 * 24 * time.Hour}).Run(s)
+		got := (&HandoffExists{}).Run(s)
 		if len(got) != 0 {
 			t.Errorf("findings = %d, want 0", len(got))
 		}
 	})
 
-	t.Run("stale", func(t *testing.T) {
+	t.Run("custom output path", func(t *testing.T) {
 		dir := t.TempDir()
-		path := filepath.Join(dir, "HANDOFF.md")
-		os.WriteFile(path, []byte("# HANDOFF"), 0644)
-		// Set modtime to 10 days ago
-		old := time.Now().Add(-10 * 24 * time.Hour)
-		os.Chtimes(path, old, old)
+		os.WriteFile(filepath.Join(dir, "out.md"), []byte("# HANDOFF"), 0644)
 		s := &collector.Snapshot{WorkDir: dir}
-		got := (&HandoffFreshness{MaxAge: 7 * 24 * time.Hour}).Run(s)
+		got := (&HandoffExists{OutputPath: "out.md"}).Run(s)
+		if len(got) != 0 {
+			t.Errorf("findings = %d, want 0", len(got))
+		}
+	})
+
+	t.Run("custom output path missing", func(t *testing.T) {
+		dir := t.TempDir()
+		s := &collector.Snapshot{WorkDir: dir}
+		got := (&HandoffExists{OutputPath: "out.md"}).Run(s)
 		if len(got) != 1 {
 			t.Fatalf("findings = %d, want 1", len(got))
 		}
-		if !strings.Contains(got[0].Message, "日前") {
-			t.Errorf("message = %q, want contains '日前'", got[0].Message)
+		if !strings.Contains(got[0].Message, "out.md") {
+			t.Errorf("message = %q, want contains 'out.md'", got[0].Message)
 		}
 	})
 }
