@@ -20,9 +20,10 @@ MVP 実装済み。`handoff export` / `handoff prompt` が動作する。Phase 4
 
 ```
 main.go              — エントリポイント
-cmd/                  — cobra コマンド定義（root, export, prompt）
-internal/collector/   — Git情報・ファイル・ディレクトリ構造の収集
-internal/renderer/    — HANDOFF.md / AI向けプロンプトの生成
+cmd/                  — cobra コマンド定義（root, export, prompt, import, diff, doctor）
+internal/collector/   — Git情報・ファイル・ディレクトリ構造・TODO件数・CI検出の収集
+internal/renderer/    — HANDOFF.md / AI向けプロンプト / doctor出力の生成
+internal/doctor/      — handoff品質の診断（Rule interface + 組み込みルール）
 internal/config/      — 設定管理
 ```
 
@@ -34,6 +35,9 @@ go test ./...               # 全テスト実行
 ./handoff export            # HANDOFF.md 生成
 ./handoff prompt            # AI向けプロンプトを stdout 出力
 ./handoff prompt --format xml  # XML形式で出力
+./handoff doctor            # handoff品質の診断
+./handoff doctor --format json  # JSON形式で出力
+./handoff doctor --strict   # Error検出時 exit 1（CI用）
 ```
 
 ## Design Principles

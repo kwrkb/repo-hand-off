@@ -223,6 +223,34 @@ README.md / CLAUDE.md を第一級フィールドから Extra に移行し、AGE
 
 ---
 
+## Phase 10: `handoff doctor` — handoff 品質の診断（完了）
+
+「状態の保存ツール」から「状態の保存と検証のツール」への拡張。
+CI/CD で handoff 品質を継続検証できるようにする。
+
+### 設計
+
+- `internal/doctor/` に診断ロジックを閉じ込め、handoff 本体との結合を最小化
+- `Rule` interface でルールを抽象化し、構造体 + `defaultRules` 追記だけで新ルール追加可能
+- `collector.Snapshot` に `WorkDir` / `TodoCount` / `CIFiles` を追加
+
+### タスク
+
+- [x] VISION.md 更新（Problem / Vision / Concept / Principles / Scope / Success Criteria に doctor 観点を追加）
+- [x] `internal/collector/` — Snapshot に `WorkDir`, `TodoCount`, `CIFiles` 追加、`CountTodos` / `DetectCIFiles` 実装
+- [x] `internal/config/` — `TodoThreshold` フィールド追加（デフォルト 10）
+- [x] `internal/doctor/rule.go` — `Severity`, `Finding`, `Rule` interface 定義
+- [x] `internal/doctor/doctor.go` — `Diagnose` / `DiagnoseWith` エントリポイント
+- [x] `internal/doctor/rules.go` — 12 個の組み込みルール実装
+- [x] `internal/doctor/rules_test.go` / `doctor_test.go` — ユニットテスト
+- [x] `internal/renderer/doctor.go` — text / JSON フォーマッタ
+- [x] `internal/renderer/doctor_test.go` — フォーマッタテスト
+- [x] `cmd/doctor.go` — cobra コマンド定義（`--format text|json`, `--strict`）
+- [x] PLAN.md 更新
+- [x] CI（GitHub Actions）に `handoff doctor --strict` ステップ追加
+
+---
+
 ## MVP後（将来フェーズ）
 
 - ~~`.handoff.yaml` 設定ファイル~~ → Phase 6 で実装済み
@@ -248,3 +276,6 @@ README.md / CLAUDE.md を第一級フィールドから Extra に移行し、AGE
 11. `handoff import --force` → 既存ファイル上書き
 12. `handoff diff` → セクション比較結果表示
 13. Git / 非Git ディレクトリ両方で全コマンド正常動作
+14. `handoff doctor` → text 形式で診断結果出力
+15. `handoff doctor --format json` → JSON 形式で出力
+16. `handoff doctor --strict` → Error なしなら exit 0、Error ありなら exit 1

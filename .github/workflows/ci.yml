@@ -30,3 +30,6 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+
+      - name: Handoff doctor
+        run: ./handoff doctor --strict
