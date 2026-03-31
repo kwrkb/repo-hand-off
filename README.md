@@ -1,192 +1,27 @@
 # repo-hand-off
 
-[![CI](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml/badge.svg)](https://github.com/kwrkb/repo-hand-off/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/kwrkb/repo-hand-off)](https://go.dev/)
+> **This project is archived and no longer maintained.**
+> The approach of a standalone CLI tool turned out to be less practical than implementing handoff as a Claude Code skill with a stop hook. This repository is kept for reference only.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kwrkb/repo-hand-off)](https://goreportcard.com/report/github.com/kwrkb/repo-hand-off)
 
 [日本語](README_ja.md)
 
 A CLI tool that captures and shares the "state" of development — enabling seamless handoffs between humans and AI agents.
 
-![demo](demo.gif)
+## Why Archived?
 
-## Install
+The core idea — capturing project state for handoffs — is valid, but building it as a separate CLI tool adds unnecessary friction. A better approach is to implement handoff as a **Claude Code skill** triggered by a **stop hook**, which integrates directly into the development workflow without requiring a separate tool.
 
-```bash
-go install github.com/kwrkb/repo-hand-off/cmd/handoff@latest
-```
+## What This Was
 
-Or download a prebuilt binary from [Releases](https://github.com/kwrkb/repo-hand-off/releases).
+`handoff` was a Go CLI that could:
 
-Or build from source:
-
-```bash
-git clone https://github.com/kwrkb/repo-hand-off.git
-cd repo-hand-off
-go build -o handoff ./cmd/handoff
-```
-
-## Usage
-
-### `handoff export` — Export project state
-
-Captures the current project state and writes it to `HANDOFF.md`.
-
-```bash
-handoff export                    # Generate HANDOFF.md
-handoff export -o snapshot.md     # Specify output file
-handoff export --format xml       # Output in XML format
-handoff export --quiet            # Suppress progress messages
-handoff export --verbose          # Show detailed logs
-```
-
-Collected information:
-- Git state (branch, commit, uncommitted changes, remote URL)
-- Project files (VISION.md, PLAN.md, LESSONS.md)
-- AI config files auto-detected (README.md, CLAUDE.md, AGENTS.md, GEMINI.md)
-- Additional files specified in `.handoff.yaml`
-- Directory structure
-
-### `handoff prompt` — Generate AI-ready prompt
-
-Outputs the project state as a context prompt to stdout, ready to be piped into an AI agent.
-
-```bash
-handoff prompt                    # Markdown format
-handoff prompt --format xml       # XML format (optimized for Claude)
-handoff prompt | pbcopy           # Copy to clipboard
-```
-
-### `handoff import` — Restore project state
-
-Restores project files (VISION.md, PLAN.md, LESSONS.md, and Extra files) from a HANDOFF.md.
-
-```bash
-handoff import                    # Restore files from HANDOFF.md
-handoff import --force            # Overwrite existing files
-handoff import -f snapshot.md     # Specify input file
-```
-
-### `handoff diff` — Compare states
-
-Compares each section of HANDOFF.md against the current files and shows the diff status.
-
-```bash
-handoff diff                      # Compare HANDOFF.md with current state
-handoff diff -f snapshot.md       # Specify input file
-```
-
-Example output:
-
-```
-Section         Status
--------         ------
-Vision          unchanged
-Plan            changed
-Lessons         added
-README.md       unchanged
-CLAUDE.md       changed
-```
-
-### `handoff doctor` — Diagnose handoff readiness
-
-Checks whether the project has the essential files and state needed for a successful handoff.
-
-```bash
-handoff doctor                    # Show diagnostics (text format)
-handoff doctor --format json      # Output in JSON format
-handoff doctor --strict           # Exit with code 1 if any errors are found (for CI)
-```
-
-Example output:
-
-```
-repo-hand-off handoff doctor
-─────────────────────────────
-✓ vision-exists       VISION.md found
-✓ plan-exists         PLAN.md found
-✓ readme-exists       README.md found
-⚠ license-exists      LICENSE ファイルが見つかりません
-✓ lessons-exists      LESSONS.md found
-✓ ci-exists           CI 設定が見つかりました
-✓ gitignore-exists    .gitignore found
-✓ uncommitted-changes 未コミットの変更はありません
-ℹ todo-fixme-count    TODO/FIXME が 3 件あります
-✓ handoff-exists      HANDOFF.md found
-
-1 warning(s), 0 error(s)
-```
-
-Severity levels: `✓` pass, `ℹ` info, `⚠` warning, `✗` error
-
-Use `--strict` in CI to block merges when errors are present:
-
-```yaml
-- name: Check handoff readiness
-  run: handoff doctor --strict
-```
-
-## Configuration
-
-Place a `.handoff.yaml` in the project root to customize default behavior.
-
-```yaml
-format: markdown        # Default output format ("markdown" or "xml")
-output: HANDOFF.md      # Default output filename
-depth: 3                # Max depth for directory tree
-files:                  # Additional files to collect
-  - NOTES.md
-  - TODO.md
-exclude:                # Patterns to exclude from directory tree (glob)
-  - "*.log"
-  - tmp
-```
-
-All settings have sensible defaults and work without a config file. CLI flags take precedence over config.
-
-## Design Philosophy
-
-- **State-first** — Focuses on the "state" of development, not just code
-- **AI-native** — Outputs formats that AI agents can consume directly
-- **CLI-centric** — Lightweight and usable anywhere
-- **Non-invasive** — Never disrupts existing Git or development workflows
-
-See [VISION.md](VISION.md) for details.
-
-## HANDOFF.md Example
-
-```markdown
-# HANDOFF.md
-> Generated by repo-hand-off at 2026-03-20 12:00:00
-
-## Project
-- Repository: https://github.com/user/repo.git
-- Branch: main @ abc1234
-- Uncommitted changes: no
-
-## Vision
-(contents of VISION.md)
-
-## Plan
-(contents of PLAN.md)
-
-## Lessons
-Not found.
-
-## Extra: README.md
-(contents of README.md)
-
-## Extra: CLAUDE.md
-(contents of CLAUDE.md)
-
-## Current State
-### Recent Commits
-- abc1234 feat: add user auth
-
-## Directory Structure
-(tree output)
-```
+- **`handoff export`** — Capture project state (Git info, project files, directory structure) into `HANDOFF.md`
+- **`handoff prompt`** — Generate AI-ready context prompts (Markdown/XML)
+- **`handoff import`** — Restore project files from a `HANDOFF.md`
+- **`handoff diff`** — Compare saved state against current files
+- **`handoff doctor`** — Diagnose handoff readiness (with `--strict` for CI)
 
 ## License
 
