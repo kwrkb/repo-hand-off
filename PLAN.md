@@ -249,6 +249,14 @@ CI/CD で handoff 品質を継続検証できるようにする。
 - [x] PLAN.md 更新
 - [x] CI（GitHub Actions）に `handoff doctor --strict` ステップ追加
 
+### PR #8 レビュー対応（完了）
+
+- [x] `--format` に不正な値を渡した場合に明示的なエラーを返すよう修正
+  > `switch` の `default` でサイレントフォールバックしていた問題を修正
+- [x] GitLab CI の `.gitlab-ci.yaml` 拡張子を `DetectCIFiles` で検出するよう対応
+- [x] `LicenseExists` ルールに `COPYING` / `COPYING.md` を追加
+- [x] `TodoFixmeCount` の `Finding` に `Action` フィールドを追加
+
 ---
 
 ## MVP後（将来フェーズ）
