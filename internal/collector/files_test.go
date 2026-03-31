@@ -153,3 +153,70 @@ func TestShouldSkipWithExclude(t *testing.T) {
 		t.Error("shouldSkip should not match *.tmp for .go file")
 	}
 }
+
+func TestCountTodos(t *testing.T) {
+	dir := t.TempDir()
+
+	os.WriteFile(filepath.Join(dir, "main.go"), []byte("// TODO: fix this\n// FIXME: broken\nfmt.Println(\"hello\")\n"), 0644)
+	os.WriteFile(filepath.Join(dir, "clean.go"), []byte("package main\n"), 0644)
+	os.WriteFile(filepath.Join(dir, "notes.md"), []byte("# TODO list\nFIXME later\n"), 0644)
+	// Binary file should be skipped
+	os.WriteFile(filepath.Join(dir, "image.png"), []byte("TODO in binary"), 0644)
+
+	count, err := CountTodos(dir, nil)
+	if err != nil {
+		t.Fatalf("CountTodos failed: %v", err)
+	}
+	if count != 4 {
+		t.Errorf("CountTodos = %d, want 4", count)
+	}
+}
+
+func TestCountTodosWithExclude(t *testing.T) {
+	dir := t.TempDir()
+	os.MkdirAll(filepath.Join(dir, "vendor"), 0755)
+	os.WriteFile(filepath.Join(dir, "main.go"), []byte("// TODO: fix\n"), 0644)
+	os.WriteFile(filepath.Join(dir, "vendor", "lib.go"), []byte("// TODO: vendor\n"), 0644)
+
+	count, err := CountTodos(dir, nil)
+	if err != nil {
+		t.Fatalf("CountTodos failed: %v", err)
+	}
+	// vendor is in skipNames, should be excluded
+	if count != 1 {
+		t.Errorf("CountTodos = %d, want 1", count)
+	}
+}
+
+func TestDetectCIFiles(t *testing.T) {
+	dir := t.TempDir()
+
+	// No CI files
+	files := DetectCIFiles(dir)
+	if len(files) != 0 {
+		t.Errorf("DetectCIFiles = %v, want empty", files)
+	}
+
+	// GitHub Actions
+	ghDir := filepath.Join(dir, ".github", "workflows")
+	os.MkdirAll(ghDir, 0755)
+	os.WriteFile(filepath.Join(ghDir, "ci.yml"), []byte("name: CI"), 0644)
+	os.WriteFile(filepath.Join(ghDir, "release.yaml"), []byte("name: Release"), 0644)
+
+	files = DetectCIFiles(dir)
+	if len(files) != 2 {
+		t.Errorf("DetectCIFiles len = %d, want 2", len(files))
+	}
+
+	// GitLab CI
+	dir2 := t.TempDir()
+	os.WriteFile(filepath.Join(dir2, ".gitlab-ci.yml"), []byte("stages:"), 0644)
+
+	files2 := DetectCIFiles(dir2)
+	if len(files2) != 1 {
+		t.Errorf("DetectCIFiles len = %d, want 1", len(files2))
+	}
+	if files2[0] != ".gitlab-ci.yml" {
+		t.Errorf("DetectCIFiles[0] = %q, want .gitlab-ci.yml", files2[0])
+	}
+}

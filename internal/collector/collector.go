@@ -12,6 +12,9 @@ type Snapshot struct {
 	Files      ProjectFiles
 	DirTree    string
 	RecentLogs []string
+	WorkDir    string   // absolute path to the project directory
+	TodoCount  int      // number of TODO/FIXME comments in source files
+	CIFiles    []string // detected CI config file paths (relative)
 }
 
 // CollectOptions configures the Collect function.
@@ -46,11 +49,21 @@ func Collect(dir string, opts CollectOptions) (*Snapshot, error) {
 		logs, _ = RecentCommits(dir, 10) // non-fatal: repo may have no commits
 	}
 
+	todoCount, err := CountTodos(dir, opts.Exclude)
+	if err != nil {
+		return nil, err
+	}
+
+	ciFiles := DetectCIFiles(dir)
+
 	return &Snapshot{
 		Timestamp:  time.Now(),
 		Git:        *git,
 		Files:      *files,
 		DirTree:    tree,
 		RecentLogs: logs,
+		WorkDir:    dir,
+		TodoCount:  todoCount,
+		CIFiles:    ciFiles,
 	}, nil
 }

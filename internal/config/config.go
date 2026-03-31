@@ -10,19 +10,21 @@ import (
 
 // Config holds .handoff.yaml configuration.
 type Config struct {
-	Format  string   `yaml:"format"`
-	Output  string   `yaml:"output"`
-	Files   []string `yaml:"files"`
-	Exclude []string `yaml:"exclude"`
-	Depth   int      `yaml:"depth"`
+	Format        string   `yaml:"format"`
+	Output        string   `yaml:"output"`
+	Files         []string `yaml:"files"`
+	Exclude       []string `yaml:"exclude"`
+	Depth         int      `yaml:"depth"`
+	TodoThreshold int      `yaml:"todo_threshold"`
 }
 
 // DefaultConfig returns a Config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{
-		Format: "markdown",
-		Output: "HANDOFF.md",
-		Depth:  3,
+		Format:        "markdown",
+		Output:        "HANDOFF.md",
+		Depth:         3,
+		TodoThreshold: 10,
 	}
 }
 

@@ -1,10 +1,12 @@
 package collector
 
 import (
+	"bufio"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -157,6 +159,94 @@ func buildTree(root, dir, prefix string, maxDepth, depth int, exclude []string, 
 var skipNames = []string{
 	".DS_Store", ".git", ".idea", ".next", ".venv", ".vscode",
 	"__pycache__", "build", "dist", "node_modules", "target", "vendor",
+}
+
+var todoPattern = regexp.MustCompile(`(?i)\b(TODO|FIXME)\b`)
+
+// CountTodos counts TODO/FIXME comments in source files under dir.
+func CountTodos(dir string, exclude []string) (int, error) {
+	count := 0
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if shouldSkip(d.Name(), exclude) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if shouldSkip(d.Name(), exclude) {
+			return nil
+		}
+		if !isTextFile(d.Name()) {
+			return nil
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return nil // skip unreadable files
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			count += len(todoPattern.FindAllString(scanner.Text(), -1))
+		}
+		// Ignore scanner errors (e.g. token too long): count what we could read
+		return nil
+	})
+	return count, err
+}
+
+// textExtensions lists file extensions considered as text/source files.
+var textExtensions = map[string]bool{
+	".go": true, ".py": true, ".js": true, ".ts": true, ".tsx": true, ".jsx": true,
+	".rb": true, ".rs": true, ".java": true, ".kt": true, ".swift": true, ".c": true,
+	".cpp": true, ".h": true, ".hpp": true, ".cs": true, ".php": true, ".sh": true,
+	".bash": true, ".zsh": true, ".fish": true, ".yaml": true, ".yml": true,
+	".toml": true, ".json": true, ".xml": true, ".html": true, ".css": true,
+	".scss": true, ".less": true, ".sql": true, ".md": true, ".txt": true,
+	".vue": true, ".svelte": true, ".dart": true, ".lua": true, ".r": true,
+	".ex": true, ".exs": true, ".erl": true, ".hs": true, ".ml": true,
+	".tf": true, ".proto": true, ".graphql": true, ".dockerfile": true,
+}
+
+func isTextFile(name string) bool {
+	ext := strings.ToLower(filepath.Ext(name))
+	if textExtensions[ext] {
+		return true
+	}
+	// Include common extensionless files
+	lower := strings.ToLower(name)
+	return lower == "makefile" || lower == "dockerfile" || lower == "rakefile" || lower == "gemfile"
+}
+
+// DetectCIFiles returns relative paths of CI configuration files found in dir.
+func DetectCIFiles(dir string) []string {
+	var files []string
+
+	// GitHub Actions
+	ghDir := filepath.Join(dir, ".github", "workflows")
+	if entries, err := os.ReadDir(ghDir); err == nil {
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+			ext := strings.ToLower(filepath.Ext(e.Name()))
+			if ext == ".yml" || ext == ".yaml" {
+				files = append(files, filepath.Join(".github", "workflows", e.Name()))
+			}
+		}
+	}
+
+	// GitLab CI
+	for _, name := range []string{".gitlab-ci.yml", ".gitlab-ci.yaml"} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			files = append(files, name)
+			break
+		}
+	}
+
+	return files
 }
 
 func shouldSkip(name string, exclude []string) bool {
