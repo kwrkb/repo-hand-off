@@ -89,6 +89,44 @@ README.md       unchanged
 CLAUDE.md       changed
 ```
 
+### `handoff doctor` — handoff 品質の診断
+
+プロジェクトが handoff に必要なファイルと状態を備えているか診断します。
+
+```bash
+handoff doctor                    # 診断結果を表示（text 形式）
+handoff doctor --format json      # JSON 形式で出力
+handoff doctor --strict           # エラーがあれば exit 1（CI用）
+```
+
+出力例:
+
+```
+repo-hand-off handoff doctor
+─────────────────────────────
+✓ vision-exists       VISION.md found
+✓ plan-exists         PLAN.md found
+✓ readme-exists       README.md found
+⚠ license-exists      LICENSE ファイルが見つかりません
+✓ lessons-exists      LESSONS.md found
+✓ ci-exists           CI 設定が見つかりました
+✓ gitignore-exists    .gitignore found
+✓ uncommitted-changes 未コミットの変更はありません
+ℹ todo-fixme-count    TODO/FIXME が 3 件あります
+✓ handoff-exists      HANDOFF.md found
+
+1 warning(s), 0 error(s)
+```
+
+深刻度: `✓` 正常、`ℹ` 情報、`⚠` 警告、`✗` エラー
+
+CI で `--strict` を使うとエラー時にマージをブロックできます:
+
+```yaml
+- name: handoff 品質チェック
+  run: handoff doctor --strict
+```
+
 ## 設定ファイル
 
 プロジェクトルートに `.handoff.yaml` を置くと、デフォルト動作をカスタマイズできます。
