@@ -265,6 +265,7 @@ CI/CD で handoff 品質を継続検証できるようにする。
 - ~~`--format xml`（Claude向け）~~ → Phase 3 で実装済み
 - ~~`handoff import` / `handoff diff`~~ → Phase 6 で実装済み
 - **doctor ルールのカスタマイズ** — `.handoff.yaml` でルールの有効/無効を制御できるようにする（例: `doctor.disable: [vision-exists, license-exists]`）。VISION.md を持たないプロジェクトでも false positive な警告が出ないようにする
+- **`handoff -p <message>` でルートに統合** — `prompt` サブコマンドを廃止し、ルートコマンドに `-p`/`--prompt` フラグを追加。指示文付きで stdout 出力（例: `handoff -p "計画を見直してください。" | claude`）。`export` はファイル保存、`-p` は AI へ渡す用途と役割が明確に分かれる
 - MCP サーバー対応
 - Homebrew / バイナリ配布
 
