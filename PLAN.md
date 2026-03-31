@@ -264,6 +264,7 @@ CI/CD で handoff 品質を継続検証できるようにする。
 - ~~`.handoff.yaml` 設定ファイル~~ → Phase 6 で実装済み
 - ~~`--format xml`（Claude向け）~~ → Phase 3 で実装済み
 - ~~`handoff import` / `handoff diff`~~ → Phase 6 で実装済み
+- **doctor ルールのカスタマイズ** — `.handoff.yaml` でルールの有効/無効を制御できるようにする（例: `doctor.disable: [vision-exists, license-exists]`）。VISION.md を持たないプロジェクトでも false positive な警告が出ないようにする
 - MCP サーバー対応
 - Homebrew / バイナリ配布
 
