@@ -8,7 +8,9 @@ repo-hand-off は、開発の「状態」（コード・計画・意図・学習
 
 ## Status
 
-MVP 実装済み。`handoff export` / `handoff prompt` が動作する。Phase 4 の README.md 作成が残タスク。
+Phase 1〜10 完了、v0.2.0 リリース済み（2026-03-31）。
+`handoff export` / `handoff prompt` / `handoff import` / `handoff diff` / `handoff doctor` が動作する。
+次フェーズ: doctor ルールのカスタマイズ（`.handoff.yaml` でルールの有効/無効を制御）。
 
 ## Key Documents
 
