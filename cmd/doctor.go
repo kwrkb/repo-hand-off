@@ -34,6 +34,10 @@ var doctorCmd = &cobra.Command{
 		})
 		logVerbose("Diagnostics complete: %d findings", len(findings))
 
+		if doctorFormat != renderer.FormatText && doctorFormat != renderer.FormatJSON {
+			return fmt.Errorf("unsupported format %q: must be \"text\" or \"json\"", doctorFormat)
+		}
+
 		var output string
 		switch doctorFormat {
 		case renderer.FormatJSON:

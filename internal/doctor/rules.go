@@ -88,7 +88,7 @@ func (r *LicenseExists) Run(s *collector.Snapshot) []Finding {
 	if s.WorkDir == "" {
 		return nil
 	}
-	for _, name := range []string{"LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE"} {
+	for _, name := range []string{"LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "COPYING", "COPYING.md"} {
 		if _, err := os.Stat(filepath.Join(s.WorkDir, name)); err == nil {
 			return nil
 		}
@@ -189,6 +189,7 @@ func (r *TodoFixmeCount) Run(s *collector.Snapshot) []Finding {
 			Rule:     r.Name(),
 			Severity: Info,
 			Message:  fmt.Sprintf("TODO/FIXME が %d 件あります", s.TodoCount),
+			Action:   "ソースコード内の TODO/FIXME を確認し、必要に応じて解消してください",
 		}}
 	}
 	return nil

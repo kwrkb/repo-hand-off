@@ -239,8 +239,11 @@ func DetectCIFiles(dir string) []string {
 	}
 
 	// GitLab CI
-	if _, err := os.Stat(filepath.Join(dir, ".gitlab-ci.yml")); err == nil {
-		files = append(files, ".gitlab-ci.yml")
+	for _, name := range []string{".gitlab-ci.yml", ".gitlab-ci.yaml"} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			files = append(files, name)
+			break
+		}
 	}
 
 	return files
