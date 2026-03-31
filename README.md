@@ -89,6 +89,44 @@ README.md       unchanged
 CLAUDE.md       changed
 ```
 
+### `handoff doctor` — Diagnose handoff readiness
+
+Checks whether the project has the essential files and state needed for a successful handoff.
+
+```bash
+handoff doctor                    # Show diagnostics (text format)
+handoff doctor --format json      # Output in JSON format
+handoff doctor --strict           # Exit with code 1 if any errors are found (for CI)
+```
+
+Example output:
+
+```
+repo-hand-off handoff doctor
+─────────────────────────────
+✓ vision-exists       VISION.md found
+✓ plan-exists         PLAN.md found
+✓ readme-exists       README.md found
+⚠ license-exists      LICENSE ファイルが見つかりません
+✓ lessons-exists      LESSONS.md found
+✓ ci-exists           CI 設定が見つかりました
+✓ gitignore-exists    .gitignore found
+✓ uncommitted-changes 未コミットの変更はありません
+ℹ todo-fixme-count    TODO/FIXME が 3 件あります
+✓ handoff-exists      HANDOFF.md found
+
+1 warning(s), 0 error(s)
+```
+
+Severity levels: `✓` pass, `ℹ` info, `⚠` warning, `✗` error
+
+Use `--strict` in CI to block merges when errors are present:
+
+```yaml
+- name: Check handoff readiness
+  run: handoff doctor --strict
+```
+
 ## Configuration
 
 Place a `.handoff.yaml` in the project root to customize default behavior.
