@@ -23,6 +23,13 @@
 - 設定可能な出力パス（`config.Output`）がある場合、診断ルールもそのパスを参照する。ハードコードしたファイル名で存在確認すると設定と矛盾する
 - Rule interface を導入する場合、`defaultRules` スライスの要素をコピーして設定値を差し替える方式は動くが、設定の受け渡しには `DiagnoseOptions` のような構造体を使う方がクリーン
 - `os.Exit(1)` を cobra の `RunE` 内で使うのは一般的には避けるべきだが、diagnostic 出力後の exit は CLI エントリポイントの特殊ケースとして許容。コメントで意図を明記する
+- `Finding` 構造体に `Action` フィールドがある場合、全ルールで統一して埋める。Info レベルでも「次に何をすべきか」を示すことでユーザビリティが上がる
+- LICENSE ファイル検出は `LICENSE`/`LICENSE.md`/`LICENSE.txt` だけでなく `COPYING`/`COPYING.md`（GPL 系）も対象にする。リスト漏れは false positive な警告を生む
+
+## CLI / フラグバリデーション
+
+- `--format` のような列挙型フラグは `switch` の `default` で黙って処理せず、明示的にバリデーションして `fmt.Errorf("unsupported format %q: ...")` を返す。タイポ（`jsno` など）が自動的に text 出力にフォールバックするとパイプラインのデバッグが困難になる
+- ファイル名のバリエーションを検出する際は規格の正式仕様も確認する。GitLab CI は `.gitlab-ci.yml` と `.gitlab-ci.yaml` の両方を受け付けるが、片方だけ実装すると検出漏れが起きる
 
 ## テスト
 
