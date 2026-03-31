@@ -17,6 +17,11 @@ Phase 1〜10 完了、v0.2.0 リリース済み（2026-03-31）。
 - `VISION.md` — プロジェクトの目的・設計原則・スコープ
 - `PLAN.md` — 実装計画・進捗管理
 - `HANDOFF.md` — 現在の開発状態スナップショット（本ツールが生成する成果物、.gitignore 対象）
+- `HANDOFF.xml` — XML形式のセッション引き継ぎ用スナップショット（.gitignore 対象）
+
+## Maintenance Notes
+
+- **Status セクション**はフェーズ完了・リリース後に必ず更新する（放置されやすい）
 
 ## Architecture
 
